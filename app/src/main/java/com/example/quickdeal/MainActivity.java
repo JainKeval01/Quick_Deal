@@ -1,12 +1,16 @@
 package com.example.quickdeal;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.example.quickdeal.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,5 +20,13 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent loginIntent = new Intent(this,Login_Page.class);
+                startActivity(loginIntent);
+
+            }
+        },3000);
     }
 }
