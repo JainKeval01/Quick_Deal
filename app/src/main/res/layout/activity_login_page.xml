@@ -12,16 +12,16 @@
         android:gravity="center"
         android:orientation="vertical">
         <androidx.cardview.widget.CardView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             app:cardBackgroundColor="#1A1F2B"
-            app:cardCornerRadius="34dp">
+            app:cardCornerRadius="24dp">
 
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_lightning"
-                android:padding="34dp"
+                android:padding="24dp"
                 android:scaleType="fitCenter" />
         </androidx.cardview.widget.CardView>
 
