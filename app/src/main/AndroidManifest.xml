@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.QuickDeal">
         <activity
+            android:name=".TreeActivity"
+            android:exported="false" />
+        <activity
             android:name=".Login_Page"
             android:exported="false" />
         <activity

@@ -1,0 +1,11 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment android:id="@+id/nav_home" android:name="com.example.quickdeal.HomeFragment" />
+    <fragment android:id="@+id/nav_ads" android:name="com.example.quickdeal.MyAdsFragment" />
+    <fragment android:id="@+id/addItem" android:name="com.example.quickdeal.AddItemFragment" />
+    <fragment android:id="@+id/nav_fav" android:name="com.example.quickdeal.FavFragment" />
+    <fragment android:id="@+id/nav_account" android:name="com.example.quickdeal.ProfileFragment" />
+</navigation>
