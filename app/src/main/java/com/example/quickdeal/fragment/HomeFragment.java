@@ -27,6 +27,9 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        hBinding = FragmentHomeBinding.inflate(inflater, container, false);
+
         productList.add(new Product("IPhone","Andheri East","₹54,999","https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"));
         productList.add(new Product("IPhone","Andheri East","₹54,999","https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"));
         productList.add(new Product("IPhone","Andheri East","₹54,999","https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"));
@@ -37,6 +40,6 @@ public class HomeFragment extends Fragment {
         ProductAdapter adapter=new ProductAdapter(productList);
         hBinding.rvRecommendations.setLayoutManager(new GridLayoutManager(getContext(),2));
         hBinding.rvRecommendations.setAdapter(adapter);
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        return hBinding.getRoot();
     }
 }
