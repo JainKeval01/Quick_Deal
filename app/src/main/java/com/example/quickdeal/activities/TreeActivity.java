@@ -1,18 +1,16 @@
-package com.example.quickdeal;
+package com.example.quickdeal.activities;
 
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
+
+import com.example.quickdeal.R;
 import com.example.quickdeal.databinding.ActivityTreeBinding;
 
 public class TreeActivity extends AppCompatActivity {

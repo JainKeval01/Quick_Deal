@@ -12,16 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.QuickDeal">
         <activity
-            android:name=".TreeActivity"
+            android:name=".activities.TreeActivity"
             android:exported="false" />
         <activity
-            android:name=".Login_Page"
+            android:name=".activities.Login_Page"
             android:exported="false" />
         <activity
-            android:name=".Login_Page"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

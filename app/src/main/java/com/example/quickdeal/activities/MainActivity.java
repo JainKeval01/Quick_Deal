@@ -1,4 +1,4 @@
-package com.example.quickdeal;
+package com.example.quickdeal.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,11 +6,8 @@ import android.os.Handler;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.example.quickdeal.databinding.ActivityMainBinding;
+import com.example.quickdeal.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent loginIntent = new Intent(getApplicationContext(),Login_Page.class);
+                Intent loginIntent = new Intent(getApplicationContext(), Login_Page.class);
                 startActivity(loginIntent);
 
             }

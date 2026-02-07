@@ -1,5 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">Quick Deal</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Content Descriptions -->
+    <string name="app_logo">App Logo</string>
+    <string name="location_icon">Location Icon</string>
+    <string name="dropdown_icon">Dropdown Icon</string>
+    <string name="search_icon">Search Icon</string>
+    <string name="voice_search">Voice Search</string>
+    <string name="filter">Filter</string>
+    <string name="product_image">Product Image</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="location">Location</string>
+    <string name="sell_item">Sell Item</string>
+    <string name="category_icon">Category Icon</string>
+
+    <!-- Categories -->
+    <string name="cars">Cars</string>
+    <string name="properties">Properties</string>
+    <string name="mobiles">Mobiles</string>
+    <string name="jobs">Jobs</string>
+    <string name="bikes">Bikes</string>
+    <string name="Fashion">Bikes</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_my_ads">My Ads</string>
+    <string name="nav_sell">SELL</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_account">Account</string>
 </resources>

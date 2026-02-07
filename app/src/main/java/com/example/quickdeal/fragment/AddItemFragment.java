@@ -1,4 +1,4 @@
-package com.example.quickdeal;
+package com.example.quickdeal.fragment;
 
 import android.os.Bundle;
 
@@ -8,12 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.quickdeal.R;
+
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link FavFragment#newInstance} factory method to
+ * Use the {@link AddItemFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FavFragment extends Fragment {
+public class AddItemFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -24,7 +26,7 @@ public class FavFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public FavFragment() {
+    public AddItemFragment() {
         // Required empty public constructor
     }
 
@@ -34,11 +36,11 @@ public class FavFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment FavFragment.
+     * @return A new instance of fragment AddItemFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static FavFragment newInstance(String param1, String param2) {
-        FavFragment fragment = new FavFragment();
+    public static AddItemFragment newInstance(String param1, String param2) {
+        AddItemFragment fragment = new AddItemFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -59,6 +61,6 @@ public class FavFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_fav, container, false);
+        return inflater.inflate(R.layout.fragment_add_item, container, false);
     }
 }
