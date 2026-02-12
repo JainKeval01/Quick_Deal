@@ -5,27 +5,38 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="60dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         app:defaultNavHost="true"
         app:navGraph="@navigation/nav_graph" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#FFFFFF"
-        android:paddingBottom="8dp"
-        app:elevation="8dp"
-        app:itemIconSize="24dp"
-        app:itemIconTint="@color/nav_color"
-        app:itemTextColor="@color/nav_color"
-        app:labelVisibilityMode="selected"
-        app:menu="@menu/menu" />
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="#F8f8f8"
+            android:paddingTop="6dp"
+            android:paddingBottom="0dp"
+            app:elevation="28dp"
+            app:itemIconSize="24dp"
+            app:itemIconTint="#15161B"
+            app:itemTextColor="@color/black"
+            app:itemBackground="@drawable/bottom_nav_border"
+            app:itemActiveIndicatorStyle="@null"
+            app:labelVisibilityMode="selected"
+            app:itemRippleColor="#1A0052FF"
+            app:menu="@menu/menu" />
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

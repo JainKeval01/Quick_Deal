@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -22,10 +23,17 @@ public class TreeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityTreeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavigationView, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(0, 0, 0, systemBars.bottom);
-            return insets;
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.navHostFragment.setPadding(0, insets.top, 0, 0);
+            binding.bottomNavigationView.setPadding( binding.bottomNavigationView.getPaddingLeft(),
+                    binding.bottomNavigationView.getPaddingTop(),
+                    binding.bottomNavigationView.getPaddingRight(),
+                    insets.bottom);
+
+            return WindowInsetsCompat.CONSUMED;
         });
 
 
@@ -35,8 +43,6 @@ public class TreeActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
 
-            // 2. Bottom Navigation ko Controller ke saath link karna
-            // Note: Menu item ki ID aur NavGraph ki Fragment ID same honi chahiye
             NavigationUI.setupWithNavController(binding.bottomNavigationView, navController);
         }
     }
