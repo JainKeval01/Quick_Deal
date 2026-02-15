@@ -2,4 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Chip Colors -->
+    <color name="chip_background_color">@color/chip_bg_selector</color>
+    <color name="chip_text_color">@color/chip_text_selector</color>
+
+    <!-- Switch Colors -->
+    <color name="switch_track_color">@color/switch_track_selector</color>
 </resources>

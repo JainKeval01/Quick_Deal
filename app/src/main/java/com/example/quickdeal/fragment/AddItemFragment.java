@@ -1,66 +1,173 @@
 package com.example.quickdeal.fragment;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
 
 import com.example.quickdeal.R;
+import com.example.quickdeal.databinding.FragmentAddItemBinding;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link AddItemFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class AddItemFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    FragmentAddItemBinding binding;
+    private String selectedCategory = "";
+    private String selectedCondition = "New";
 
     public AddItemFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment AddItemFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static AddItemFragment newInstance(String param1, String param2) {
-        AddItemFragment fragment = new AddItemFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_add_item, container, false);
+        binding = FragmentAddItemBinding.inflate(inflater, container, false);
+
+        setupCategorySpinner();
+        setupListeners();
+        setupDescriptionCounter();
+
+        return binding.getRoot();
+    }
+
+    private void setupCategorySpinner() {
+        // Categories list
+        List<String> categories = new ArrayList<>();
+        categories.add("Select Category");
+        categories.add("Cars");
+        categories.add("Properties");
+        categories.add("Mobiles");
+        categories.add("Fashion");
+        categories.add("Bikes");
+
+        // Adapter
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                categories
+        );
+
+        binding.spinnerCategory.setAdapter(adapter);
+
+        // Selection listener
+        binding.spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position > 0) { // Skip "Select Category"
+                    selectedCategory = categories.get(position);
+                } else {
+                    selectedCategory = "";
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedCategory = "";
+            }
+        });
+    }
+
+    private void setupListeners() {
+        // Reset button
+        binding.tvReset.setOnClickListener(v -> resetForm());
+
+        // Main photo click
+        binding.cvAddMainPhoto.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Camera will open here", Toast.LENGTH_SHORT).show();
+        });
+
+        // Condition chips
+        binding.chipNew.setOnClickListener(v -> selectCondition("New"));
+        binding.chipUsedLikeNew.setOnClickListener(v -> selectCondition("Used - Like New"));
+        binding.chipUsedGood.setOnClickListener(v -> selectCondition("Used - Good"));
+
+        // Location selector
+        binding.llLocationSelector.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Location selector will open", Toast.LENGTH_SHORT).show();
+        });
+
+        // Post Now button
+        binding.btnPostNow.setOnClickListener(v -> postAd());
+    }
+
+    private void selectCondition(String condition) {
+        selectedCondition = condition;
+
+        binding.chipNew.setChecked(false);
+        binding.chipUsedLikeNew.setChecked(false);
+        binding.chipUsedGood.setChecked(false);
+
+        if (condition.equals("New")) {
+            binding.chipNew.setChecked(true);
+        } else if (condition.equals("Used - Like New")) {
+            binding.chipUsedLikeNew.setChecked(true);
+        } else if (condition.equals("Used - Good")) {
+            binding.chipUsedGood.setChecked(true);
+        }
+    }
+
+    private void setupDescriptionCounter() {
+        binding.etDescription.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                binding.tvDescriptionCounter.setText(s.length() + "/2000");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void resetForm() {
+        binding.etTitle.setText("");
+        binding.spinnerCategory.setSelection(0);
+        selectedCategory = "";
+        selectCondition("New");
+        binding.etPrice.setText("");
+        binding.switchNegotiable.setChecked(false);
+        binding.etDescription.setText("");
+    }
+
+    private void postAd() {
+        String title = binding.etTitle.getText().toString().trim();
+        String price = binding.etPrice.getText().toString().trim();
+        String description = binding.etDescription.getText().toString().trim();
+
+        if (title.isEmpty()) {
+            Toast.makeText(getContext(), "Please enter title", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (selectedCategory.isEmpty()) {
+            Toast.makeText(getContext(), "Please select category", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (price.isEmpty()) {
+            Toast.makeText(getContext(), "Please enter price", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (description.isEmpty()) {
+            Toast.makeText(getContext(), "Please add description", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(getContext(), "Ad posted successfully!", Toast.LENGTH_SHORT).show();
+        resetForm();
     }
 }
