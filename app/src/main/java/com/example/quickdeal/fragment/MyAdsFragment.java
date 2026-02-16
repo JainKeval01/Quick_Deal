@@ -11,16 +11,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.quickdeal.adapter.MyAdsAdapter;
 import com.example.quickdeal.databinding.FragmentMyAdsBinding;
 import com.example.quickdeal.model.MyAd;
+import com.example.quickdeal.repository.ProductRepository;
 import com.google.android.material.tabs.TabLayout;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MyAdsFragment extends Fragment {
 
     FragmentMyAdsBinding binding;
-    List<MyAd> activeAds = new ArrayList<>();
-    List<MyAd> soldAds = new ArrayList<>();
+    private ProductRepository productRepository;
+    private List<MyAd> activeAds;
+    private List<MyAd> soldAds;
     MyAdsAdapter adapter;
 
     public MyAdsFragment() {
@@ -31,41 +32,15 @@ public class MyAdsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentMyAdsBinding.inflate(inflater, container, false);
+        productRepository = ProductRepository.getInstance();
 
-        // Sample data - Active ads
-        activeAds.add(new MyAd(
-                "iPhone 13 Pro Max",
-                "256GB Sierra Blue",
-                "New York, NY",
-                "$850",
-                "https://images.unsplash.com/photo-1632661674596-df8be070a5c5",
-                "ACTIVE"
-        ));
-
-        activeAds.add(new MyAd(
-                "Sony PlayStation 5",
-                "Disc Edition Console",
-                "Brooklyn, NY",
-                "$450",
-                "https://images.unsplash.com/photo-1606813907291-d86efa9b94db",
-                "ACTIVE"
-        ));
-
-        activeAds.add(new MyAd(
-                "Mid-Century Chair",
-                "Modern Wooden Design",
-                "Queens, NY",
-                "$120",
-                "https://images.unsplash.com/photo-1503602642458-232111445657",
-                "ACTIVE"
-        ));
-
-
+        activeAds = productRepository.getActiveAds();
+        soldAds = productRepository.getSoldAds();
 
         // Setup RecyclerView with Active ads by default
         setupRecyclerView(activeAds, 0);
 
-        // Tab selection listener - YE LOGIC IMPORTANT HAI
+        // Tab selection listener
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -97,7 +72,6 @@ public class MyAdsFragment extends Fragment {
         checkEmptyState(ads, tabPosition);
     }
 
-    // Jab tab change ho, list update ho
     private void updateAdsList(List<MyAd> ads, int tabPosition) {
         adapter = new MyAdsAdapter(ads);
         binding.rvMyAds.setAdapter(adapter);
@@ -120,11 +94,6 @@ public class MyAdsFragment extends Fragment {
                 case 1: // Sold
                     binding.tvEmptyTitle.setText("No Sold Items");
                     binding.tvEmptyMessage.setText("You haven't sold anything yet.\nKeep your ads active to get buyers!");
-                    break;
-
-                case 2: // Expired
-                    binding.tvEmptyTitle.setText("No Expired Ads");
-                    binding.tvEmptyMessage.setText("Great! All your ads are still active.\nKeep them updated for better results!");
                     break;
             }
         } else {

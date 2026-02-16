@@ -1,66 +1,97 @@
 package com.example.quickdeal.fragment;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.GridLayoutManager;
+
 import com.example.quickdeal.R;
+import com.example.quickdeal.adapter.ProductAdapter;
+import com.example.quickdeal.databinding.FragmentFavBinding;
+import com.example.quickdeal.model.Product;
+import com.example.quickdeal.repository.ProductRepository;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link FavFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class FavFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteClickListener, ProductAdapter.OnItemClickListener {
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private FragmentFavBinding binding;
+    private ProductRepository productRepository;
+    private ProductAdapter adapter;
+    private List<Product> favoriteProductsList = new ArrayList<>();
 
     public FavFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment FavFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static FavFragment newInstance(String param1, String param2) {
-        FavFragment fragment = new FavFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = FragmentFavBinding.inflate(inflater, container, false);
+        productRepository = ProductRepository.getInstance();
+        return binding.getRoot();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupRecyclerView();
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadFavoriteProducts();
+    }
+
+    private void setupRecyclerView() {
+        adapter = new ProductAdapter(favoriteProductsList, this, this);
+        binding.rvFav.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        binding.rvFav.setAdapter(adapter);
+    }
+
+    private void loadFavoriteProducts() {
+        List<Product> freshFavorites = productRepository.getFavoriteProducts();
+        favoriteProductsList.clear();
+        favoriteProductsList.addAll(freshFavorites);
+        adapter.notifyDataSetChanged();
+        updateUI();
+    }
+
+    private void updateUI() {
+        if (favoriteProductsList.isEmpty()) {
+            binding.llEmptyState.setVisibility(View.VISIBLE);
+            binding.rvFav.setVisibility(View.GONE);
+            binding.tvSavedItems.setText("Saved Items (0)");
+        } else {
+            binding.llEmptyState.setVisibility(View.GONE);
+            binding.rvFav.setVisibility(View.VISIBLE);
+            binding.tvSavedItems.setText(String.format(Locale.getDefault(), "Saved Items (%d)", favoriteProductsList.size()));
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_fav, container, false);
+    public void onFavoriteClick(int position, Product product) {
+        product.isFavorite = !product.isFavorite;
+        productRepository.toggleFavoriteStatus(product);
+
+        favoriteProductsList.remove(position);
+        adapter.notifyItemRemoved(position);
+        adapter.notifyItemRangeChanged(position, favoriteProductsList.size());
+        
+        updateUI();
+    }
+
+    @Override
+    public void onItemClick(Product product) {
+        // For now, we do nothing. We will implement this later.
     }
 }

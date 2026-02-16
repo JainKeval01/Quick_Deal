@@ -4,7 +4,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,62 +17,54 @@ import java.util.List;
 
 public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> {
 
-    List<MyAd> list;
+    private List<MyAd> ads;
 
-    public MyAdsAdapter(List<MyAd> list) {
-        this.list = list;
+    public MyAdsAdapter(List<MyAd> ads) {
+        this.ads = ads;
     }
 
     @NonNull
     @Override
-    public MyAdsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_my_ad_card, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyAdsAdapter.ViewHolder holder, int position) {
-        MyAd ad = list.get(position);
-
-        holder.title.setText(ad.title);
-        holder.description.setText(ad.description);
-        holder.location.setText(ad.location);
-        holder.price.setText(ad.price);
-
-        Glide.with(holder.image.getContext())
-                .load(ad.image)
-                .placeholder(R.drawable.loading)
-                .error(R.drawable.error)
-                .into(holder.image);
-
-        holder.editButton.setOnClickListener(v -> {
-            // Edit logic here
-        });
-
-        holder.deleteButton.setOnClickListener(v -> {
-            // Delete logic here
-        });
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        MyAd ad = ads.get(position);
+        holder.bind(ad);
     }
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return ads.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title, description, location, price;
-        ImageView image;
-        LinearLayout editButton, deleteButton;
+        ImageView ivAdImage;
+        TextView tvAdTitle, tvAdDescription, tvAdLocation, tvAdPrice;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            title = itemView.findViewById(R.id.tvProductTitle);
-            description = itemView.findViewById(R.id.tvDescription);
-            location = itemView.findViewById(R.id.tvLocation);
-            price = itemView.findViewById(R.id.tvPrice);
-            image = itemView.findViewById(R.id.ivProductImage);
-            editButton = itemView.findViewById(R.id.llEditButton);
-            deleteButton = itemView.findViewById(R.id.llDeleteButton);
+            ivAdImage = itemView.findViewById(R.id.ivAdImage);
+            tvAdTitle = itemView.findViewById(R.id.tvAdTitle);
+            tvAdDescription = itemView.findViewById(R.id.tvAdDescription);
+            tvAdLocation = itemView.findViewById(R.id.tvAdLocation);
+            tvAdPrice = itemView.findViewById(R.id.tvAdPrice);
+        }
+
+        public void bind(MyAd ad) {
+            tvAdTitle.setText(ad.title);
+            tvAdDescription.setText(ad.description);
+            tvAdLocation.setText(ad.location);
+            tvAdPrice.setText(ad.price);
+
+            Glide.with(ivAdImage.getContext())
+                    .load(ad.image)
+                    .placeholder(R.drawable.ic_image)
+                    .error(R.drawable.ic_image)
+                    .into(ivAdImage);
         }
     }
 }
