@@ -82,8 +82,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
             name.setText(p.name);
             location.setText(p.location);
             price.setText(p.price);
-            Glide.with(image.getContext()).load(p.image).placeholder(R.drawable.loading)
-                    .error(R.drawable.error).into(image);
+            if (p.images != null && !p.images.isEmpty()) {
+                Glide.with(image.getContext()).load(p.images.get(0)).placeholder(R.drawable.loading)
+                        .error(R.drawable.error).into(image);
+            }
 
             updateFavoriteIcon(p);
 
@@ -99,7 +101,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
                 }
             });
         }
-        
+
         public void updateFavoriteIcon(Product p) {
             if (p.isFavorite) {
                 ivFavorite.setImageResource(R.drawable.ic_favorite_filled);

@@ -47,11 +47,11 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivAdImage = itemView.findViewById(R.id.ivAdImage);
-            tvAdTitle = itemView.findViewById(R.id.tvAdTitle);
-            tvAdDescription = itemView.findViewById(R.id.tvAdDescription);
-            tvAdLocation = itemView.findViewById(R.id.tvAdLocation);
-            tvAdPrice = itemView.findViewById(R.id.tvAdPrice);
+            ivAdImage = itemView.findViewById(R.id.ivProductImage);
+            tvAdTitle = itemView.findViewById(R.id.tvProductTitle);
+            tvAdDescription = itemView.findViewById(R.id.tvDescription);
+            tvAdLocation = itemView.findViewById(R.id.tvLocation);
+            tvAdPrice = itemView.findViewById(R.id.tvPrice);
         }
 
         public void bind(MyAd ad) {
@@ -62,8 +62,8 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
             Glide.with(ivAdImage.getContext())
                     .load(ad.image)
-                    .placeholder(R.drawable.ic_image)
-                    .error(R.drawable.ic_image)
+                    .placeholder(R.drawable.loading)
+                    .error(R.drawable.error)
                     .into(ivAdImage);
         }
     }

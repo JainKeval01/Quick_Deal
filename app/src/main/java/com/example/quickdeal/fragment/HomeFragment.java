@@ -48,6 +48,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnFavoriteC
 
     @Override
     public void onItemClick(Product product) {
-        // For now, we do nothing. We will implement this later.
+        ProductDetailFragment bottomSheet = ProductDetailFragment.newInstance(product);
+        bottomSheet.show(getParentFragmentManager(), bottomSheet.getTag());
     }
 }
