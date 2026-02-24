@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -80,6 +82,43 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             productRepository.toggleFavoriteStatus(product);
             updateWishlistButton();
         });
+
+        binding.report.setOnClickListener(v -> showReportDialog());
+    }
+
+    private void showReportDialog() {
+        final String[] reportReasons = {
+                "Scam or Misleading Ad",
+                "Prohibited or Banned Item",
+                "Offensive Content",
+                "Item is already sold or unavailable",
+                "Incorrect category or information"
+        };
+        final int[] checkedItem = {-1}; // Use an array to make it effectively final
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Report this Ad")
+                .setSingleChoiceItems(reportReasons, checkedItem[0], (dialog, which) -> {
+                    checkedItem[0] = which;
+                })
+                .setPositiveButton("Submit", (dialog, which) -> {
+                    if (checkedItem[0] != -1) {
+                        String selectedReason = reportReasons[checkedItem[0]];
+                        // In the future, this is where you'll send the report to Firebase.
+                        // Example:
+                        // String reportId = databaseReference.child("reports").push().getKey();
+                        // String productId = product.getId(); // Assuming your product model will have an ID
+                        // String reporterId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        // long timestamp = System.currentTimeMillis();
+                        // Report report = new Report(reportId, productId, reporterId, selectedReason, timestamp);
+                        // databaseReference.child("reports").child(reportId).setValue(report);
+
+                        Toast.makeText(getContext(), "Ad reported. Thank you.", Toast.LENGTH_LONG).show();
+                    }
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private void setupViewPager() {
