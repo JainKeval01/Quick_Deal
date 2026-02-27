@@ -79,6 +79,7 @@
 
         <!-- INPUTS -->
         <EditText
+            android:id="@+id/etUsername"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="14dp"
             android:background="@drawable/input"
@@ -91,6 +92,7 @@
             android:layout_height="60dp"/>
 
         <EditText
+            android:id="@+id/etEmail"
             android:layout_marginBottom="14dp"
             android:background="@drawable/input"
             android:drawableStart="@drawable/email"
@@ -102,6 +104,7 @@
             android:layout_height="60dp"/>
 
         <EditText
+            android:id="@+id/etPhone"
             android:layout_marginBottom="14dp"
             android:background="@drawable/input"
             android:drawableStart="@drawable/phone"
@@ -110,9 +113,11 @@
             android:textColor="#212121"
             android:padding="18dp"
             android:layout_width="match_parent"
-            android:layout_height="60dp"/>
+            android:layout_height="60dp"
+            android:inputType="phone"/>
 
         <EditText
+            android:id="@+id/etCity"
             android:layout_marginBottom="14dp"
             android:background="@drawable/input"
             android:drawableStart="@drawable/location"
@@ -124,6 +129,7 @@
             android:layout_height="60dp"/>
 
         <EditText
+            android:id="@+id/etPassword"
             android:layout_marginBottom="14dp"
             android:background="@drawable/input"
             android:drawableStart="@drawable/lock"
@@ -136,6 +142,7 @@
             android:layout_height="60dp"/>
 
         <EditText
+            android:id="@+id/etConfirmPassword"
             android:layout_marginBottom="24dp"
             android:background="@drawable/input"
             android:drawableStart="@drawable/lock"
