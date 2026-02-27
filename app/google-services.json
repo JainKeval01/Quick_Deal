@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "673129007322",
+    "firebase_url": "https://quickdeal-16f5f-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "quickdeal-16f5f",
+    "storage_bucket": "quickdeal-16f5f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673129007322:android:8ad6a8c1931449b25efde3",
+        "android_client_info": {
+          "package_name": "com.example.quickdeal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUQ3_OfE0TMZSdc3rxOLkqaPb94LX6XBs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
