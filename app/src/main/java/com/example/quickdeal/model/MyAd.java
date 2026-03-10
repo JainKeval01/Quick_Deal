@@ -1,20 +1,31 @@
 package com.example.quickdeal.model;
 
+import java.util.List;
+
 public class MyAd {
+
     public String title;
     public String description;
     public String location;
     public String price;
-    public String image;
-    public String status;      // "ACTIVE", "SOLD", "EXPIRED", "PENDING"
+    public List<String> images;
+    public String category;
+    public String status;
 
-    public MyAd(String title, String description, String location, String price,
-                String image, String status) {
+    public MyAd(String title,
+                String description,
+                String location,
+                String price,
+                List<String> images,
+                String category,
+                String status) {
+
         this.title = title;
         this.description = description;
         this.location = location;
         this.price = price;
-        this.image = image;
+        this.images = images;
+        this.category = category;
         this.status = status;
     }
 }

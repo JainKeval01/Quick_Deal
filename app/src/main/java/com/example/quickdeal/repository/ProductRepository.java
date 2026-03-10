@@ -46,15 +46,39 @@ public class ProductRepository {
         activeAds = new ArrayList<>();
         if (productList.size() >= 2) {
             Product product1 = productList.get(0);
-            activeAds.add(new MyAd(product1.name, product1.description, product1.location, product1.price, product1.images.get(0), "ACTIVE"));
+            activeAds.add(new MyAd(
+                    product1.name,
+                    product1.description,
+                    product1.location,
+                    product1.price,
+                    product1.images,
+                    "Electronics",
+                    "ACTIVE"
+            ));
             Product product2 = productList.get(1);
-            activeAds.add(new MyAd(product2.name, product2.description, product2.location, product2.price, product2.images.get(0), "ACTIVE"));
+            activeAds.add(new MyAd(
+                    product1.name,
+                    product1.description,
+                    product1.location,
+                    product1.price,
+                    product1.images,
+                    "Electronics",
+                    "ACTIVE"
+            ));
         }
 
         soldAds = new ArrayList<>();
         if (productList.size() >= 3) {
             Product product3 = productList.get(2);
-            soldAds.add(new MyAd(product3.name, product3.description, product3.location, product3.price, product3.images.get(0), "SOLD"));
+            soldAds.add(new MyAd(
+                    product3.name,
+                    product3.description,
+                    product3.location,
+                    product3.price,
+                    product3.images,
+                    "Furniture",
+                    "SOLD"
+            ));
         }
 
         // Dummy data for reported products

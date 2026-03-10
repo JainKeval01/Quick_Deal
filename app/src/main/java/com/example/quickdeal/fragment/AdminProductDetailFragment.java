@@ -40,7 +40,7 @@ public class AdminProductDetailFragment extends BottomSheetDialogFragment {
             productId = getArguments().getString("productId");
         }
         productRepository = ProductRepository.getInstance();
-        setCancelable(false); // Prevent dismissing by clicking outside
+        setCancelable(false);
     }
 
     @NonNull
@@ -52,7 +52,7 @@ public class AdminProductDetailFragment extends BottomSheetDialogFragment {
             if (bottomSheet != null) {
                 BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
                 behavior.setDraggable(false);
-                behavior.setHideable(false); // Prevent dragging down to dismiss
+                behavior.setHideable(false);
                 behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }
         });

@@ -3,14 +3,10 @@ package com.example.quickdeal.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.quickdeal.databinding.ActivityLoginPageBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,19 +23,15 @@ public class Login_Page extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         EdgeToEdge.enable(this);
 
         loginBinding = ActivityLoginPageBinding.inflate(getLayoutInflater());
         setContentView(loginBinding.getRoot());
 
-        ViewCompat.setOnApplyWindowInsetsListener(loginBinding.getRoot(), (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
-            return WindowInsetsCompat.CONSUMED;
-        });
-
         mAuth = FirebaseAuth.getInstance();
 
+        // LOGIN BUTTON
         loginBinding.loginButton.setOnClickListener(v -> {
 
             String email = loginBinding.emailEditText.getText().toString().trim();
@@ -47,7 +39,7 @@ public class Login_Page extends AppCompatActivity {
 
             if (validateInput(email, password)) {
 
-                // ✅ ADMIN LOGIN CHECK
+                // ADMIN LOGIN
                 if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASSWORD)) {
 
                     Toast.makeText(Login_Page.this,
@@ -60,16 +52,24 @@ public class Login_Page extends AppCompatActivity {
                     finish();
 
                 } else {
-                    // ✅ FIREBASE USER LOGIN
+
                     loginUser(email, password);
                 }
             }
         });
 
+        // SIGNUP CLICK
         loginBinding.signUp.setOnClickListener(v -> {
+
             Intent userIntent =
                     new Intent(Login_Page.this, Signup_page.class);
             startActivity(userIntent);
+        });
+
+        // FORGOT PASSWORD
+        loginBinding.forgetPassword.setOnClickListener(v -> {
+            Intent intent=new Intent(Login_Page.this, ForgotPassword.class);
+            startActivity(intent);
         });
     }
 
@@ -90,8 +90,29 @@ public class Login_Page extends AppCompatActivity {
                         finish();
 
                     } else {
+
                         Toast.makeText(Login_Page.this,
                                 "Invalid Email or Password",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void resetPassword(String email) {
+
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+
+                    if (task.isSuccessful()) {
+
+                        Toast.makeText(Login_Page.this,
+                                "Reset link sent to your email",
+                                Toast.LENGTH_LONG).show();
+
+                    } else {
+
+                        Toast.makeText(Login_Page.this,
+                                "Error sending reset email",
                                 Toast.LENGTH_LONG).show();
                     }
                 });

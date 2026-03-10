@@ -21,7 +21,6 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnFavoriteC
     private List<Product> productList;
 
     public HomeFragment() {
-        // Required empty public constructor
     }
 
     @Override

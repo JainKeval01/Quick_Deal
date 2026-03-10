@@ -3,6 +3,7 @@ package com.example.quickdeal.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -39,11 +40,16 @@ public class Signup_page extends AppCompatActivity {
             return WindowInsetsCompat.CONSUMED;
         });
 
-        // Firebase init
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users");
 
-        sBinding.back.setOnClickListener(v -> finish());
+        sBinding.back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Signup_page.this, Login_Page.class);
+                startActivity(intent);
+            }
+        });
         sBinding.login1.setOnClickListener(v -> finish());
 
         sBinding.createaccount.setOnClickListener(v -> {
