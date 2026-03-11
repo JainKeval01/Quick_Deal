@@ -80,7 +80,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
         public void bind(Product p) {
             name.setText(p.name);
-            location.setText(p.location);
             price.setText(p.price);
             if (p.images != null && !p.images.isEmpty()) {
                 Glide.with(image.getContext()).load(p.images.get(0)).placeholder(R.drawable.loading)

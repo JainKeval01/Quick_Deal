@@ -6,7 +6,6 @@ public class MyAd {
 
     public String title;
     public String description;
-    public String location;
     public String price;
     public List<String> images;
     public String category;
@@ -14,7 +13,6 @@ public class MyAd {
 
     public MyAd(String title,
                 String description,
-                String location,
                 String price,
                 List<String> images,
                 String category,
@@ -22,7 +20,6 @@ public class MyAd {
 
         this.title = title;
         this.description = description;
-        this.location = location;
         this.price = price;
         this.images = images;
         this.category = category;

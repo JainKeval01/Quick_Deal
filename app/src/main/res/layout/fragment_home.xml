@@ -87,7 +87,6 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_search"
-                            android:contentDescription="@string/search_icon"
                             app:tint="#999999" />
 
                         <EditText
@@ -103,9 +102,7 @@
                             android:layout_marginEnd="12dp"
                             android:inputType="text"
                             android:maxLines="1" />
-
                     </LinearLayout>
-
                 </androidx.cardview.widget.CardView>
 
                 <!-- Prominent Categories -->
@@ -132,9 +129,9 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <!-- Cars Category -->
+                        <!-- All Category -->
                         <LinearLayout
-                            android:id="@+id/llCategoryCars"
+                            android:id="@+id/llAll"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -152,8 +149,7 @@
                                     android:layout_width="25dp"
                                     android:layout_height="25dp"
                                     android:layout_gravity="center"
-                                    android:src="@drawable/ic_car"
-                                    android:contentDescription="@string/cars"
+                                    android:src="@drawable/ic_lightning"
                                     app:tint="#000000" />
 
                             </androidx.cardview.widget.CardView>
@@ -161,52 +157,16 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Cars"
+                                android:text="All"
                                 android:textSize="12sp"
                                 android:textColor="#000000"
                                 android:layout_marginTop="8dp" />
 
                         </LinearLayout>
 
-                        <!-- Properties Category -->
+                        <!-- Electronics Category -->
                         <LinearLayout
-                            android:id="@+id/llCategoryProperties"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="16dp">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                app:cardCornerRadius="32dp"
-                                app:cardElevation="2dp"
-                                android:backgroundTint="#FFFFFF">
-
-                                <ImageView
-                                    android:layout_width="25dp"
-                                    android:layout_height="25dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_home"
-                                    android:contentDescription="@string/properties"
-                                    app:tint="#000000" />
-
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Properties"
-                                android:textSize="12sp"
-                                android:textColor="#000000"
-                                android:layout_marginTop="8dp" />
-
-                        </LinearLayout>
-
-                        <!-- Mobiles Category -->
-                        <LinearLayout
-                            android:id="@+id/llCategoryMobiles"
+                            android:id="@+id/llElectronics"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -225,7 +185,111 @@
                                     android:layout_height="25dp"
                                     android:layout_gravity="center"
                                     android:src="@drawable/ic_mobile"
-                                    android:contentDescription="@string/mobiles"
+                                    app:tint="#000000" />
+
+                            </androidx.cardview.widget.CardView>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Electronics"
+                                android:textSize="12sp"
+                                android:textColor="#000000"
+                                android:layout_marginTop="8dp" />
+
+                        </LinearLayout>
+
+                        <!-- Cars Category -->
+                        <LinearLayout
+                            android:id="@+id/llCars"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:layout_marginEnd="16dp">
+
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                app:cardCornerRadius="32dp"
+                                app:cardElevation="2dp"
+                                android:backgroundTint="#FFFFFF">
+
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_car"
+                                    app:tint="#000000" />
+
+                            </androidx.cardview.widget.CardView>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cars"
+                                android:textSize="12sp"
+                                android:textColor="#000000"
+                                android:layout_marginTop="8dp" />
+
+                        </LinearLayout>
+
+                        <!-- Properties Category -->
+                        <LinearLayout
+                            android:id="@+id/llProperties"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:layout_marginEnd="16dp">
+
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                app:cardCornerRadius="32dp"
+                                app:cardElevation="2dp"
+                                android:backgroundTint="#FFFFFF">
+
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_home"
+                                    app:tint="#000000" />
+
+                            </androidx.cardview.widget.CardView>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Properties"
+                                android:textSize="12sp"
+                                android:textColor="#000000"
+                                android:layout_marginTop="8dp" />
+
+                        </LinearLayout>
+
+                        <!-- Mobiles Category -->
+                        <LinearLayout
+                            android:id="@+id/llMobiles"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:layout_marginEnd="16dp">
+
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                app:cardCornerRadius="32dp"
+                                app:cardElevation="2dp"
+                                android:backgroundTint="#FFFFFF">
+
+                                <ImageView
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_mobile"
                                     app:tint="#000000" />
 
                             </androidx.cardview.widget.CardView>
@@ -240,9 +304,9 @@
 
                         </LinearLayout>
 
-                        <!-- Jobs Category -->
+                        <!-- Fashion Category -->
                         <LinearLayout
-                            android:id="@+id/llCategoryJobs"
+                            android:id="@+id/llFashion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -261,7 +325,6 @@
                                     android:layout_height="25dp"
                                     android:layout_gravity="center"
                                     android:src="@drawable/ic_fashion"
-                                    android:contentDescription="@string/Fashion"
                                     app:tint="#000000" />
 
                             </androidx.cardview.widget.CardView>
@@ -278,7 +341,7 @@
 
                         <!-- Bikes Category -->
                         <LinearLayout
-                            android:id="@+id/llCategoryBikes"
+                            android:id="@+id/llBikes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -296,7 +359,6 @@
                                     android:layout_height="25dp"
                                     android:layout_gravity="center"
                                     android:src="@drawable/ic_bike"
-                                    android:contentDescription="@string/bikes"
                                     app:tint="#000000" />
 
                             </androidx.cardview.widget.CardView>
@@ -422,6 +484,24 @@
 
             </LinearLayout>
 
+            <!-- Loading ProgressBar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <!-- No Products View -->
+            <TextView
+                android:id="@+id/tvNoProducts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Abhi koi products nahi hain bhai!"
+                android:gravity="center"
+                android:padding="20dp"
+                android:visibility="gone" />
+
             <!-- Recommendations Grid -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvRecommendations"
@@ -432,30 +512,6 @@
                 android:paddingEnd="8dp"
                 tools:listitem="@layout/item_product_card"
                 tools:itemCount="6" />
-
-            <!-- Loading More -->
-            <LinearLayout
-                android:id="@+id/llLoadingMore"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:padding="24dp">
-
-                <ProgressBar
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="12dp"
-                    style="?android:attr/progressBarStyleSmall" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Loading more..."
-                    android:textSize="14sp"
-                    android:textColor="#666666" />
-
-            </LinearLayout>
 
         </LinearLayout>
 

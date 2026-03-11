@@ -1,8 +1,9 @@
 package com.example.quickdeal.fragment;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,164 +11,311 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.quickdeal.R;
+import com.example.quickdeal.adapter.SelectedImageAdapter;
 import com.example.quickdeal.databinding.FragmentAddItemBinding;
-
+import com.example.quickdeal.model.Product;
+import com.example.quickdeal.repository.ProductRepository;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class AddItemFragment extends Fragment {
 
-    FragmentAddItemBinding binding;
+    private FragmentAddItemBinding binding;
     private String selectedCategory = "";
-    private String selectedCondition = "New";
 
-    public AddItemFragment() {
-        // Required empty public constructor
-    }
+    private final List<Uri> imageUris = new ArrayList<>();
+    private final List<String> imageUrls = new ArrayList<>();
+
+    private SelectedImageAdapter imageAdapter;
+    private ProgressDialog progressDialog;
+
+    private FirebaseAuth mAuth;
+    private StorageReference mStorage;
+    private ProductRepository productRepository;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+
+                        if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+
+                            if (result.getData().getClipData() != null) {
+
+                                int count = result.getData().getClipData().getItemCount();
+
+                                for (int i = 0; i < count; i++) {
+
+                                    if (imageUris.size() >= 10) {
+                                        Toast.makeText(getContext(),
+                                                "Maximum 10 images allowed",
+                                                Toast.LENGTH_SHORT).show();
+                                        break;
+                                    }
+
+                                    Uri imageUri = result.getData().getClipData().getItemAt(i).getUri();
+                                    imageUris.add(imageUri);
+                                }
+
+                            } else if (result.getData().getData() != null) {
+
+                                if (imageUris.size() < 10) {
+                                    imageUris.add(result.getData().getData());
+                                } else {
+                                    Toast.makeText(getContext(),
+                                            "Maximum 10 images allowed",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            updatePhotoUI();
+                        }
+                    });
+
+    public AddItemFragment() {}
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         binding = FragmentAddItemBinding.inflate(inflater, container, false);
 
+        mAuth = FirebaseAuth.getInstance();
+        mStorage = FirebaseStorage.getInstance().getReference("product_images");
+        productRepository = ProductRepository.getInstance();
+
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setTitle("Uploading Product");
+        progressDialog.setCancelable(false);
+
         setupCategorySpinner();
+        setupImageRecyclerView();
         setupListeners();
-        setupDescriptionCounter();
 
         return binding.getRoot();
     }
 
     private void setupCategorySpinner() {
-        // Categories list
+
         List<String> categories = new ArrayList<>();
+
         categories.add("Select Category");
+        categories.add("Electronics");
         categories.add("Cars");
         categories.add("Properties");
         categories.add("Mobiles");
         categories.add("Fashion");
         categories.add("Bikes");
 
-        // Adapter
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_dropdown_item,
-                categories
-        );
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(requireContext(),
+                        android.R.layout.simple_spinner_dropdown_item,
+                        categories);
 
         binding.spinnerCategory.setAdapter(adapter);
 
-        // Selection listener
         binding.spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position > 0) { // Skip "Select Category"
-                    selectedCategory = categories.get(position);
-                } else {
-                    selectedCategory = "";
-                }
+
+                selectedCategory = position > 0 ? categories.get(position) : "";
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                selectedCategory = "";
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
+    }
+
+    private void setupImageRecyclerView() {
+
+        imageAdapter = new SelectedImageAdapter(imageUris, position -> {
+
+            imageUris.remove(position);
+            updatePhotoUI();
+
+        });
+
+        binding.rvSelectedImages.setLayoutManager(
+                new LinearLayoutManager(getContext(),
+                        LinearLayoutManager.HORIZONTAL,
+                        false)
+        );
+
+        binding.rvSelectedImages.setAdapter(imageAdapter);
     }
 
     private void setupListeners() {
-        // Reset button
-        binding.tvReset.setOnClickListener(v -> resetForm());
 
-        // Main photo click
         binding.cvAddMainPhoto.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Camera will open here", Toast.LENGTH_SHORT).show();
+
+            if (imageUris.size() >= 10) {
+
+                Toast.makeText(getContext(),
+                        "Maximum 10 images allowed",
+                        Toast.LENGTH_SHORT).show();
+
+                return;
+            }
+
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+
+            intent.setType("image/*");
+
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+            imagePickerLauncher.launch(intent);
         });
 
-        // Condition chips
-        binding.chipNew.setOnClickListener(v -> selectCondition("New"));
-        binding.chipUsedLikeNew.setOnClickListener(v -> selectCondition("Used - Like New"));
-        binding.chipUsedGood.setOnClickListener(v -> selectCondition("Used - Good"));
+        binding.btnPostNow.setOnClickListener(v -> validateAndUpload());
 
-        // Location selector
-        binding.llLocationSelector.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Location selector will open", Toast.LENGTH_SHORT).show();
-        });
-
-        // Post Now button
-        binding.btnPostNow.setOnClickListener(v -> postAd());
+        binding.tvReset.setOnClickListener(v -> resetForm());
     }
 
-    private void selectCondition(String condition) {
-        selectedCondition = condition;
+    private void updatePhotoUI() {
 
-        binding.chipNew.setChecked(false);
-        binding.chipUsedLikeNew.setChecked(false);
-        binding.chipUsedGood.setChecked(false);
+        binding.tvPhotoCount.setText(imageUris.size() + "/10");
 
-        if (condition.equals("New")) {
-            binding.chipNew.setChecked(true);
-        } else if (condition.equals("Used - Like New")) {
-            binding.chipUsedLikeNew.setChecked(true);
-        } else if (condition.equals("Used - Good")) {
-            binding.chipUsedGood.setChecked(true);
+        imageAdapter.notifyDataSetChanged();
+
+        if (imageUris.size() >= 10) {
+
+            binding.cvAddMainPhoto.setEnabled(false);
+            binding.cvAddMainPhoto.setAlpha(0.5f);
+
+        } else {
+
+            binding.cvAddMainPhoto.setEnabled(true);
+            binding.cvAddMainPhoto.setAlpha(1f);
         }
     }
 
-    private void setupDescriptionCounter() {
-        binding.etDescription.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    private void validateAndUpload() {
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                binding.tvDescriptionCounter.setText(s.length() + "/2000");
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-    }
-
-    private void resetForm() {
-        binding.etTitle.setText("");
-        binding.spinnerCategory.setSelection(0);
-        selectedCategory = "";
-        selectCondition("New");
-        binding.etPrice.setText("");
-        binding.switchNegotiable.setChecked(false);
-        binding.etDescription.setText("");
-    }
-
-    private void postAd() {
         String title = binding.etTitle.getText().toString().trim();
         String price = binding.etPrice.getText().toString().trim();
         String description = binding.etDescription.getText().toString().trim();
 
-        if (title.isEmpty()) {
-            Toast.makeText(getContext(), "Please enter title", Toast.LENGTH_SHORT).show();
+        if (title.isEmpty() || selectedCategory.isEmpty()
+                || price.isEmpty() || description.isEmpty()
+                || imageUris.size() < 1) {
+
+            Toast.makeText(getContext(),
+                    "Bhai, sab details bharo aur kam se kam 1 photo dalo",
+                    Toast.LENGTH_SHORT).show();
+
             return;
         }
 
-        if (selectedCategory.isEmpty()) {
-            Toast.makeText(getContext(), "Please select category", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        progressDialog.setMessage("Images upload ho rahi hain...");
+        progressDialog.show();
 
-        if (price.isEmpty()) {
-            Toast.makeText(getContext(), "Please enter price", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        uploadImages(title, price, description);
+    }
 
-        if (description.isEmpty()) {
-            Toast.makeText(getContext(), "Please add description", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    private void uploadImages(String title, String price, String description) {
 
-        Toast.makeText(getContext(), "Ad posted successfully!", Toast.LENGTH_SHORT).show();
-        resetForm();
+        imageUrls.clear();
+
+        final int totalImages = imageUris.size();
+
+        for (Uri uri : imageUris) {
+
+            StorageReference fileRef = mStorage.child(UUID.randomUUID().toString());
+
+            fileRef.putFile(uri).addOnSuccessListener(taskSnapshot -> {
+
+                fileRef.getDownloadUrl().addOnSuccessListener(downloadUri -> {
+
+                    imageUrls.add(downloadUri.toString());
+
+                    if (imageUrls.size() == totalImages) {
+
+                        saveProduct(title, price, description);
+                    }
+
+                });
+
+            }).addOnFailureListener(e -> {
+
+                progressDialog.dismiss();
+
+                Toast.makeText(getContext(),
+                        "Error uploading image: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            });
+        }
+    }
+
+    private void saveProduct(String title, String price, String description) {
+
+        progressDialog.setMessage("Product detail save ho rahi hai...");
+
+        DatabaseReference productsRef =
+                FirebaseDatabase.getInstance().getReference("products");
+
+        String productId = productsRef.push().getKey();
+
+        String userId = mAuth.getUid();
+
+        long timestamp = System.currentTimeMillis();
+
+        Product product = new Product(
+                productId,
+                title,
+                price,
+                imageUrls,
+                description,
+                "Available",
+                selectedCategory,
+                userId,
+                timestamp
+        );
+
+        productRepository.addProduct(product, task -> {
+
+            progressDialog.dismiss();
+
+            if (task.isSuccessful()) {
+
+                Toast.makeText(getContext(),
+                        "Ad post ho gaya bhai!",
+                        Toast.LENGTH_SHORT).show();
+
+                resetForm();
+
+            } else {
+
+                Toast.makeText(getContext(),
+                        "Save karne me error aaya",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void resetForm() {
+
+        binding.etTitle.setText("");
+        binding.etPrice.setText("");
+        binding.etDescription.setText("");
+
+        binding.spinnerCategory.setSelection(0);
+
+        imageUris.clear();
+        imageUrls.clear();
+
+        updatePhotoUI();
     }
 }

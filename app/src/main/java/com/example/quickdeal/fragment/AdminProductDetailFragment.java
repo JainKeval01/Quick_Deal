@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,7 +14,6 @@ import androidx.annotation.Nullable;
 import com.example.quickdeal.adapter.ProductImageAdapter;
 import com.example.quickdeal.databinding.FragmentAdminProductDetailBinding;
 import com.example.quickdeal.model.Product;
-import com.example.quickdeal.model.ReportedProduct;
 import com.example.quickdeal.repository.ProductRepository;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -72,18 +72,28 @@ public class AdminProductDetailFragment extends BottomSheetDialogFragment {
 
         binding.ivClose.setOnClickListener(v -> dismiss());
 
-        ReportedProduct reportedProduct = productRepository.getReportedProductById(productId);
         Product product = productRepository.getProductById(productId);
 
-        if (reportedProduct != null && product != null) {
+        if (product != null) {
             binding.tvPrice.setText(product.price);
             binding.tvTitle.setText(product.name);
             binding.tvDescription.setText(product.description);
-            binding.tvSellerName.setText(reportedProduct.getSellerName());
-            binding.tvReportReason.setText("Scam or Misleading Ad");
+            binding.tvSellerName.setText("User: " + product.sellerId);
+            binding.tvReportReason.setText("Reported Content");
 
-            ProductImageAdapter adapter = new ProductImageAdapter(product.images);
-            binding.viewPager.setAdapter(adapter);
+            if (product.images != null && !product.images.isEmpty()) {
+                ProductImageAdapter adapter = new ProductImageAdapter(product.images);
+                binding.viewPager.setAdapter(adapter);
+            }
+        } else {
+            Toast.makeText(getContext(), "Product not found", Toast.LENGTH_SHORT).show();
+            dismiss();
         }
+
+        binding.btnBanProduct.setOnClickListener(v -> {
+            productRepository.deleteProduct(productId);
+            Toast.makeText(getContext(), "Product Deleted", Toast.LENGTH_SHORT).show();
+            dismiss();
+        });
     }
 }

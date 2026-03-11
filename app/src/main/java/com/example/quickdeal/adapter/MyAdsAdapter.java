@@ -60,7 +60,6 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             intent.putExtra("title", ad.title);
             intent.putExtra("description", ad.description);
             intent.putExtra("price", ad.price);
-            intent.putExtra("location", ad.location);
             intent.putExtra("category", ad.category);
             intent.putStringArrayListExtra("images", new ArrayList<>(ad.images));
 
@@ -94,7 +93,6 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
             tvAdTitle.setText(ad.title);
             tvAdDescription.setText(ad.description);
-            tvAdLocation.setText(ad.location);
             tvAdPrice.setText(ad.price);
 
             if (ad.images != null && !ad.images.isEmpty()) {

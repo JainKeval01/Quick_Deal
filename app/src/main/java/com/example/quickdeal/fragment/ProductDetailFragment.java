@@ -5,21 +5,21 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.quickdeal.R;
 import com.example.quickdeal.adapter.ProductImageAdapter;
 import com.example.quickdeal.databinding.FragmentProductDetailBinding;
 import com.example.quickdeal.model.Product;
+import com.example.quickdeal.model.ReportedProduct;
 import com.example.quickdeal.repository.ProductRepository;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ProductDetailFragment extends BottomSheetDialogFragment {
 
@@ -94,7 +94,7 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
                 "Item is already sold or unavailable",
                 "Incorrect category or information"
         };
-        final int[] checkedItem = {-1}; // Use an array to make it effectively final
+        final int[] checkedItem = {-1};
 
         new AlertDialog.Builder(requireContext())
                 .setTitle("Report this Ad")
@@ -103,36 +103,54 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
                 })
                 .setPositiveButton("Submit", (dialog, which) -> {
                     if (checkedItem[0] != -1) {
-                        String selectedReason = reportReasons[checkedItem[0]];
-                        // In the future, this is where you'll send the report to Firebase.
-                        // Example:
-                        // String reportId = databaseReference.child("reports").push().getKey();
-                        // String productId = product.getId(); // Assuming your product model will have an ID
-                        // String reporterId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                        // long timestamp = System.currentTimeMillis();
-                        // Report report = new Report(reportId, productId, reporterId, selectedReason, timestamp);
-                        // databaseReference.child("reports").child(reportId).setValue(report);
-
-                        Toast.makeText(getContext(), "Ad reported. Thank you.", Toast.LENGTH_LONG).show();
+                        submitReport(reportReasons[checkedItem[0]]);
+                    } else {
+                        Toast.makeText(getContext(), "Pehle reason toh select karle bhai!", Toast.LENGTH_SHORT).show();
                     }
-                    dialog.dismiss();
                 })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
+    private void submitReport(String reason) {
+        String userId = FirebaseAuth.getInstance().getUid();
+        String imageUrl = (product.images != null && !product.images.isEmpty()) ? product.images.get(0) : "";
+        
+        ReportedProduct report = new ReportedProduct(
+                product.getId(),
+                product.name,
+                userId,
+                "Just now",
+                imageUrl,
+                1,
+                "Pending",
+                false
+        );
+
+        productRepository.reportProduct(report, task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(getContext(), "Ad report ho gaya, admin check karega.", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getContext(), "Report karne me error aaya.", Toast.LENGTH_SHORT).show();
+            }
+            dismiss();
+        });
+    }
+
     private void setupViewPager() {
-        ProductImageAdapter adapter = new ProductImageAdapter(product.images);
-        binding.viewPager.setAdapter(adapter);
+        if (product.images != null) {
+            ProductImageAdapter adapter = new ProductImageAdapter(product.images);
+            binding.viewPager.setAdapter(adapter);
+        }
     }
 
     private void populateUI() {
-        binding.tvPrice.setText(product.price);
+        binding.tvPrice.setText("₹" + product.price);
         binding.tvTitle.setText(product.name);
         binding.tvDescription.setText(product.description);
         binding.tvStatus.setText(product.status);
 
-        if ("AVAILABLE".equalsIgnoreCase(product.status)) {
+        if ("Available".equalsIgnoreCase(product.status)) {
             binding.tvStatus.setBackgroundResource(R.drawable.bg_status_green);
         } else {
             binding.tvStatus.setBackgroundResource(R.drawable.bg_status_red);

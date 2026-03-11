@@ -1,6 +1,7 @@
 package com.example.quickdeal.activities;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -15,13 +16,16 @@ import com.example.quickdeal.fragment.AdminProductDetailFragment;
 import com.example.quickdeal.model.ReportedProduct;
 import com.example.quickdeal.repository.ProductRepository;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class AdminHomeActivity extends AppCompatActivity implements ReportedProductAdapter.OnItemClickListener {
+public class AdminHomeActivity extends AppCompatActivity implements ReportedProductAdapter.OnItemClickListener, ProductRepository.OnReportsChangedListener {
 
     private ActivityAdminHomeBinding binding;
     private ProductRepository productRepository;
+    private ReportedProductAdapter adapter;
+    private final List<ReportedProduct> reportedProductsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +33,7 @@ public class AdminHomeActivity extends AppCompatActivity implements ReportedProd
         binding = ActivityAdminHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // This is the important part for handling status bar overlap
+        // Handling status bar overlap
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -40,19 +44,51 @@ public class AdminHomeActivity extends AppCompatActivity implements ReportedProd
         setSupportActionBar(binding.toolbar);
 
         productRepository = ProductRepository.getInstance();
-        List<ReportedProduct> reportedProducts = productRepository.getReportedProducts();
+        productRepository.setReportsListener(this);
 
-        // Sort by report count (highest first)
-        Collections.sort(reportedProducts, (o1, o2) -> Integer.compare(o2.reportCount, o1.reportCount));
+        setupRecyclerView();
+    }
 
-        ReportedProductAdapter adapter = new ReportedProductAdapter(reportedProducts, this);
+    private void setupRecyclerView() {
+        adapter = new ReportedProductAdapter(reportedProductsList, this);
         binding.rvReportedAds.setLayoutManager(new LinearLayoutManager(this));
         binding.rvReportedAds.setAdapter(adapter);
+        
+        // Initial load
+        onReportsChanged(productRepository.getReportedProducts());
+    }
+
+    private void updateReportCount(int count) {
+        if (binding.countOfReportedAds != null) {
+            binding.countOfReportedAds.setText(count + " active flags requiring review");
+        }
+    }
+
+    @Override
+    public void onReportsChanged(List<ReportedProduct> reports) {
+        reportedProductsList.clear();
+        reportedProductsList.addAll(reports);
+        Collections.sort(reportedProductsList, (o1, o2) -> Integer.compare(o2.reportCount, o1.reportCount));
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+        updateReportCount(reportedProductsList.size());
+    }
+
+    @Override
+    public void onError(String error) {
+        Toast.makeText(this, "Error fetching reports: " + error, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onItemClick(ReportedProduct product) {
         AdminProductDetailFragment bottomSheet = AdminProductDetailFragment.newInstance(product.getId());
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        productRepository.setReportsListener(null);
     }
 }
