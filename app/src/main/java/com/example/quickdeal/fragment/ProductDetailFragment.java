@@ -16,10 +16,15 @@ import com.example.quickdeal.adapter.ProductImageAdapter;
 import com.example.quickdeal.databinding.FragmentProductDetailBinding;
 import com.example.quickdeal.model.Product;
 import com.example.quickdeal.model.ReportedProduct;
+import com.example.quickdeal.model.User;
 import com.example.quickdeal.repository.ProductRepository;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class ProductDetailFragment extends BottomSheetDialogFragment {
 
@@ -73,6 +78,7 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             setupViewPager();
             populateUI();
             updateWishlistButton();
+            loadSellerInfo();
         }
 
         binding.ivClose.setOnClickListener(v -> dismiss());
@@ -84,6 +90,26 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
         });
 
         binding.report.setOnClickListener(v -> showReportDialog());
+    }
+
+    private void loadSellerInfo() {
+        if (product.sellerId == null) return;
+
+        // Fixed node name to "Users" (Capital U) to match Signup_page
+        FirebaseDatabase.getInstance().getReference("Users")
+                .child(product.sellerId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        if (user != null && binding != null) {
+                            binding.tvSellerName.setText(user.username);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 
     private void showReportDialog() {
