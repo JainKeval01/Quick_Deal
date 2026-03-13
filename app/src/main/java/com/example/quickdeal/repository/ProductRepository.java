@@ -119,16 +119,21 @@ public class ProductRepository {
     }
 
     public void addProduct(Product product, OnCompleteListener<Void> completionListener) {
+
         String id = product.getId();
+
         if (id == null || id.isEmpty()) {
             id = mDatabase.push().getKey();
-            // We might need to update the product object with the generated ID if it's null
-            // But usually, it's passed from the fragment.
         }
+
         if (id != null) {
-            mDatabase.child(id).setValue(product).addOnCompleteListener(completionListener);
+
+            mDatabase.child(id)
+                    .setValue(product)
+                    .addOnCompleteListener(completionListener);
         }
     }
+
 
     public void reportProduct(ReportedProduct report, OnCompleteListener<Void> completionListener) {
         String reportId = mReportsDatabase.push().getKey();

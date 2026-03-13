@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.example.quickdeal.adapter.SelectedImageAdapter;
 import com.example.quickdeal.databinding.FragmentAddItemBinding;
 import com.example.quickdeal.model.Product;
@@ -24,12 +28,10 @@ import com.example.quickdeal.repository.ProductRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 public class AddItemFragment extends Fragment {
 
@@ -43,44 +45,30 @@ public class AddItemFragment extends Fragment {
     private ProgressDialog progressDialog;
 
     private FirebaseAuth mAuth;
-    private StorageReference mStorage;
     private ProductRepository productRepository;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-
                         if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
-
                             if (result.getData().getClipData() != null) {
-
                                 int count = result.getData().getClipData().getItemCount();
-
                                 for (int i = 0; i < count; i++) {
-
                                     if (imageUris.size() >= 10) {
-                                        Toast.makeText(getContext(),
-                                                "Maximum 10 images allowed",
-                                                Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "Maximum 10 images allowed", Toast.LENGTH_SHORT).show();
                                         break;
                                     }
-
                                     Uri imageUri = result.getData().getClipData().getItemAt(i).getUri();
                                     imageUris.add(imageUri);
                                 }
-
                             } else if (result.getData().getData() != null) {
-
                                 if (imageUris.size() < 10) {
                                     imageUris.add(result.getData().getData());
                                 } else {
-                                    Toast.makeText(getContext(),
-                                            "Maximum 10 images allowed",
-                                            Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Maximum 10 images allowed", Toast.LENGTH_SHORT).show();
                                 }
                             }
-
                             updatePhotoUI();
                         }
                     });
@@ -89,11 +77,9 @@ public class AddItemFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         binding = FragmentAddItemBinding.inflate(inflater, container, false);
 
         mAuth = FirebaseAuth.getInstance();
-        mStorage = FirebaseStorage.getInstance().getReference("product_images");
         productRepository = ProductRepository.getInstance();
 
         progressDialog = new ProgressDialog(getContext());
@@ -108,9 +94,7 @@ public class AddItemFragment extends Fragment {
     }
 
     private void setupCategorySpinner() {
-
         List<String> categories = new ArrayList<>();
-
         categories.add("Select Category");
         categories.add("Electronics");
         categories.add("Cars");
@@ -119,203 +103,146 @@ public class AddItemFragment extends Fragment {
         categories.add("Fashion");
         categories.add("Bikes");
 
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(requireContext(),
-                        android.R.layout.simple_spinner_dropdown_item,
-                        categories);
-
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_dropdown_item, categories);
         binding.spinnerCategory.setAdapter(adapter);
-
         binding.spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
                 selectedCategory = position > 0 ? categories.get(position) : "";
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
     private void setupImageRecyclerView() {
-
         imageAdapter = new SelectedImageAdapter(imageUris, position -> {
-
             imageUris.remove(position);
             updatePhotoUI();
-
         });
-
-        binding.rvSelectedImages.setLayoutManager(
-                new LinearLayoutManager(getContext(),
-                        LinearLayoutManager.HORIZONTAL,
-                        false)
-        );
-
+        binding.rvSelectedImages.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.rvSelectedImages.setAdapter(imageAdapter);
     }
 
     private void setupListeners() {
-
         binding.cvAddMainPhoto.setOnClickListener(v -> {
-
             if (imageUris.size() >= 10) {
-
-                Toast.makeText(getContext(),
-                        "Maximum 10 images allowed",
-                        Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(getContext(), "Maximum 10 images allowed", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-
             intent.setType("image/*");
-
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-
             imagePickerLauncher.launch(intent);
         });
 
         binding.btnPostNow.setOnClickListener(v -> validateAndUpload());
-
         binding.tvReset.setOnClickListener(v -> resetForm());
     }
 
     private void updatePhotoUI() {
-
         binding.tvPhotoCount.setText(imageUris.size() + "/10");
-
         imageAdapter.notifyDataSetChanged();
-
         if (imageUris.size() >= 10) {
-
             binding.cvAddMainPhoto.setEnabled(false);
             binding.cvAddMainPhoto.setAlpha(0.5f);
-
         } else {
-
             binding.cvAddMainPhoto.setEnabled(true);
             binding.cvAddMainPhoto.setAlpha(1f);
         }
     }
 
     private void validateAndUpload() {
-
         String title = binding.etTitle.getText().toString().trim();
         String price = binding.etPrice.getText().toString().trim();
         String description = binding.etDescription.getText().toString().trim();
 
-        if (title.isEmpty() || selectedCategory.isEmpty()
-                || price.isEmpty() || description.isEmpty()
-                || imageUris.size() < 1) {
-
-            Toast.makeText(getContext(),
-                    "Bhai, sab details bharo aur kam se kam 1 photo dalo",
-                    Toast.LENGTH_SHORT).show();
-
+        if (title.isEmpty() || selectedCategory.isEmpty() || price.isEmpty() || description.isEmpty() || imageUris.size() < 1) {
+            Toast.makeText(getContext(), "Bhai, sab details bharo aur kam se kam 1 photo dalo", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        progressDialog.setMessage("Images upload ho rahi hain...");
+        progressDialog.setMessage("Images Cloudinary pe upload ho rahi hain...");
         progressDialog.show();
-
-        uploadImages(title, price, description);
+        uploadImagesToCloudinary(title, price, description);
     }
 
-    private void uploadImages(String title, String price, String description) {
-
+    private void uploadImagesToCloudinary(String title, String price, String description) {
         imageUrls.clear();
-
         final int totalImages = imageUris.size();
+        final int[] uploadCount = {0};
 
         for (Uri uri : imageUris) {
+            MediaManager.get().upload(uri)
+                    .option("upload_preset", "quickdeal_upload") // Added your preset here
+                    .callback(new UploadCallback() {
+                        @Override
+                        public void onStart(String requestId) {}
 
-            StorageReference fileRef = mStorage.child(UUID.randomUUID().toString());
+                        @Override
+                        public void onProgress(String requestId, long bytes, long totalBytes) {}
 
-            fileRef.putFile(uri).addOnSuccessListener(taskSnapshot -> {
+                        @Override
+                        public void onSuccess(String requestId, Map resultData) {
+                            uploadCount[0]++;
+                            String url = (String) resultData.get("secure_url");
+                            imageUrls.add(url);
 
-                fileRef.getDownloadUrl().addOnSuccessListener(downloadUri -> {
+                            if (uploadCount[0] == totalImages) {
+                                saveProductToFirebase(title, price, description);
+                            }
+                        }
 
-                    imageUrls.add(downloadUri.toString());
+                        @Override
+                        public void onError(String requestId, ErrorInfo error) {
+                            uploadCount[0]++;
+                            Log.e("CloudinaryError", "Error: " + error.getDescription());
+                            
+                            if (uploadCount[0] == totalImages) {
+                                if (imageUrls.size() > 0) {
+                                    saveProductToFirebase(title, price, description);
+                                } else {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(getContext(), "Bhai, images upload nahi ho payi: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
 
-                    if (imageUrls.size() == totalImages) {
-
-                        saveProduct(title, price, description);
-                    }
-
-                });
-
-            }).addOnFailureListener(e -> {
-
-                progressDialog.dismiss();
-
-                Toast.makeText(getContext(),
-                        "Error uploading image: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            });
+                        @Override
+                        public void onReschedule(String requestId, ErrorInfo error) {}
+                    }).dispatch();
         }
     }
 
-    private void saveProduct(String title, String price, String description) {
-
+    private void saveProductToFirebase(String title, String price, String description) {
         progressDialog.setMessage("Product detail save ho rahi hai...");
-
-        DatabaseReference productsRef =
-                FirebaseDatabase.getInstance().getReference("products");
-
+        DatabaseReference productsRef = FirebaseDatabase.getInstance().getReference("products");
         String productId = productsRef.push().getKey();
-
         String userId = mAuth.getUid();
-
         long timestamp = System.currentTimeMillis();
 
-        Product product = new Product(
-                productId,
-                title,
-                price,
-                imageUrls,
-                description,
-                "Available",
-                selectedCategory,
-                userId,
-                timestamp
-        );
+        // Storing all image URLs in the 'images' field (List<String>)
+        Product product = new Product(productId, title, price, imageUrls, description, "Available", selectedCategory, userId, timestamp);
 
         productRepository.addProduct(product, task -> {
-
             progressDialog.dismiss();
-
             if (task.isSuccessful()) {
-
-                Toast.makeText(getContext(),
-                        "Ad post ho gaya bhai!",
-                        Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(getContext(), "Ad post ho gaya bhai!", Toast.LENGTH_SHORT).show();
                 resetForm();
-
             } else {
-
-                Toast.makeText(getContext(),
-                        "Save karne me error aaya",
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Database me save karne me error aaya", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void resetForm() {
-
         binding.etTitle.setText("");
         binding.etPrice.setText("");
         binding.etDescription.setText("");
-
         binding.spinnerCategory.setSelection(0);
-
         imageUris.clear();
         imageUrls.clear();
-
         updatePhotoUI();
     }
 }

@@ -377,6 +377,35 @@
 
                 </HorizontalScrollView>
 
+                <!-- Premium Banner (Moved here) -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"
+                    android:backgroundTint="#5C6FFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="24dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sell Faster\nwith Quick Deal"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:lineSpacingExtra="4dp"
+                            android:layout_marginBottom="16dp" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
             </LinearLayout>
 
             <androidx.appcompat.widget.Toolbar
@@ -432,35 +461,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="80dp">
-
-            <!-- Premium Banner -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                android:backgroundTint="#5C6FFF">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="24dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sell Faster\nwith Quick Deal"
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        android:textColor="#FFFFFF"
-                        android:lineSpacingExtra="4dp"
-                        android:layout_marginBottom="16dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
 
             <!-- Fresh Recommendations Header -->
             <LinearLayout
