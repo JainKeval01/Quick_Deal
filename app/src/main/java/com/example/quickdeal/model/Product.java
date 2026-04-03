@@ -15,6 +15,8 @@ public class Product implements Parcelable {
     public String category;
     public String sellerId;
     public long timestamp;
+    public boolean isNegotiable = false;
+    public String location;
 
     // Empty constructor required for Firebase
     public Product() {}
@@ -31,6 +33,33 @@ public class Product implements Parcelable {
         this.timestamp = timestamp;
     }
 
+    public Product(String id, String name, String price, List<String> images, String description, String status, String category, String sellerId, long timestamp, boolean isNegotiable) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.images = images;
+        this.description = description;
+        this.status = status;
+        this.category = category;
+        this.sellerId = sellerId;
+        this.timestamp = timestamp;
+        this.isNegotiable = isNegotiable;
+    }
+
+    public Product(String id, String name, String price, List<String> images, String description, String status, String category, String sellerId, long timestamp, boolean isNegotiable, String location) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.images = images;
+        this.description = description;
+        this.status = status;
+        this.category = category;
+        this.sellerId = sellerId;
+        this.timestamp = timestamp;
+        this.isNegotiable = isNegotiable;
+        this.location = location;
+    }
+
     protected Product(Parcel in) {
         id = in.readString();
         name = in.readString();
@@ -42,6 +71,8 @@ public class Product implements Parcelable {
         category = in.readString();
         sellerId = in.readString();
         timestamp = in.readLong();
+        isNegotiable = in.readByte() != 0;
+        location = in.readString();
     }
 
     public static final Creator<Product> CREATOR = new Creator<Product>() {
@@ -77,5 +108,7 @@ public class Product implements Parcelable {
         dest.writeString(category);
         dest.writeString(sellerId);
         dest.writeLong(timestamp);
+        dest.writeByte((byte) (isNegotiable ? 1 : 0));
+        dest.writeString(location);
     }
 }

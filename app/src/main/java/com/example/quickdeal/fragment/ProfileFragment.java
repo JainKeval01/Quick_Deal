@@ -1,17 +1,28 @@
 package com.example.quickdeal.fragment;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.example.quickdeal.R;
+import com.example.quickdeal.activities.EditProfileActivity;
+import com.example.quickdeal.activities.HelpSupportActivity;
 import com.example.quickdeal.activities.Login_Page;
 import com.example.quickdeal.databinding.FragmentProfileBinding;
 import com.example.quickdeal.model.Product;
@@ -26,6 +37,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
+import java.util.Map;
 
 public class ProfileFragment extends Fragment implements ProductRepository.OnDataChangedListener {
 
@@ -33,6 +45,19 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private ProductRepository productRepository;
+    private ProgressDialog progressDialog;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                            Uri imageUri = result.getData().getData();
+                            if (imageUri != null) {
+                                uploadProfileImage(imageUri);
+                            }
+                        }
+                    });
 
     public ProfileFragment() {
     }
@@ -49,10 +74,13 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
         super.onViewCreated(view, savedInstanceState);
 
         mAuth = FirebaseAuth.getInstance();
-        // Fixed node name to "Users" to match Signup_page
         mDatabase = FirebaseDatabase.getInstance().getReference();
         productRepository = ProductRepository.getInstance();
         productRepository.setProductListener(this);
+
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setMessage("Updating photo...");
+        progressDialog.setCancelable(false);
 
         loadUserProfile();
         setupListeners();
@@ -62,7 +90,6 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
         String userId = mAuth.getUid();
         if (userId == null) return;
 
-        // Fetching from "Users" (Capital U)
         mDatabase.child("Users").child(userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -71,6 +98,14 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
                     binding.tvProfileName.setText(user.username);
                     binding.tvProfileEmail.setText(user.email);
                     binding.tvProfileLocation.setText(user.city != null ? user.city : "No Location Set");
+
+                    if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
+                        Glide.with(requireContext())
+                                .load(user.profileImageUrl)
+                                .circleCrop()
+                                .placeholder(R.drawable.ic_profile)
+                                .into(binding.ivProfileImage);
+                    }
                 }
             }
 
@@ -106,17 +141,71 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
             requireActivity().finish();
         });
 
-        binding.btnEditProfile.setOnClickListener(v -> 
-            Toast.makeText(requireContext(), "Edit Profile clicked", Toast.LENGTH_SHORT).show());
-            
-        binding.btnEditImage.setOnClickListener(v -> 
-            Toast.makeText(requireContext(), "Change Photo clicked", Toast.LENGTH_SHORT).show());
+        binding.btnEditProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), EditProfileActivity.class);
+            startActivity(intent);
+        });
+
+        binding.menuSupport.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), HelpSupportActivity.class);
+            startActivity(intent);
+        });
+
+        binding.btnEditImage.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            imagePickerLauncher.launch(intent);
+        });
+    }
+
+    private void uploadProfileImage(Uri imageUri) {
+        progressDialog.show();
+
+        MediaManager.get().upload(imageUri)
+                .option("upload_preset", "quickdeal_upload")
+                .callback(new UploadCallback() {
+                    @Override
+                    public void onStart(String requestId) {}
+
+                    @Override
+                    public void onProgress(String requestId, long bytes, long totalBytes) {}
+
+                    @Override
+                    public void onSuccess(String requestId, Map resultData) {
+                        String imageUrl = (String) resultData.get("secure_url");
+                        updateProfileImageInDatabase(imageUrl);
+                    }
+
+                    @Override
+                    public void onError(String requestId, ErrorInfo error) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getContext(), "Upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onReschedule(String requestId, ErrorInfo error) {}
+                }).dispatch();
+    }
+
+    private void updateProfileImageInDatabase(String imageUrl) {
+        String userId = mAuth.getUid();
+        if (userId == null) return;
+
+        mDatabase.child("Users").child(userId).child("profileImageUrl").setValue(imageUrl)
+                .addOnCompleteListener(task -> {
+                    progressDialog.dismiss();
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getContext(), "Photo updated!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Failed to update database", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override
     public void onDataChanged(List<Product> products) {
         if (binding == null) return;
-        
+
         String userId = mAuth.getUid();
         int activeCount = 0;
         int soldCount = 0;

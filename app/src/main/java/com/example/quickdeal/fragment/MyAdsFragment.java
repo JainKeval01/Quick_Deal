@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.quickdeal.adapter.MyAdsAdapter;
 import com.example.quickdeal.databinding.FragmentMyAdsBinding;
-import com.example.quickdeal.model.MyAd;
 import com.example.quickdeal.model.Product;
 import com.example.quickdeal.repository.ProductRepository;
 import com.google.android.material.tabs.TabLayout;
@@ -25,8 +24,8 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
 
     private FragmentMyAdsBinding binding;
     private ProductRepository productRepository;
-    private final List<MyAd> activeAds = new ArrayList<>();
-    private final List<MyAd> soldAds = new ArrayList<>();
+    private final List<Product> activeAds = new ArrayList<>();
+    private final List<Product> soldAds = new ArrayList<>();
     private String currentUserId;
 
     public MyAdsFragment() {
@@ -64,22 +63,10 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
         
         for (Product product : products) {
             if (product.sellerId != null && product.sellerId.equals(currentUserId)) {
-                // Mapping Product to MyAd model
-                String firstImage = (product.images != null && !product.images.isEmpty()) ? product.images.get(0) : "";
-                
-                MyAd ad = new MyAd(
-                        product.name,
-                        product.description,
-                        product.price,
-                        product.images, // MyAd model uses List<String> for images
-                        product.category,
-                        product.status
-                );
-
                 if ("Available".equalsIgnoreCase(product.status)) {
-                    activeAds.add(ad);
+                    activeAds.add(product);
                 } else if ("Sold".equalsIgnoreCase(product.status)) {
-                    soldAds.add(ad);
+                    soldAds.add(product);
                 }
             }
         }
@@ -106,14 +93,14 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
         });
     }
 
-    private void setupRecyclerView(List<MyAd> ads, int tabPosition) {
+    private void setupRecyclerView(List<Product> ads, int tabPosition) {
         MyAdsAdapter adapter = new MyAdsAdapter(ads);
         binding.rvMyAds.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvMyAds.setAdapter(adapter);
         checkEmptyState(ads, tabPosition);
     }
 
-    private void checkEmptyState(List<MyAd> ads, int tabPosition) {
+    private void checkEmptyState(List<Product> ads, int tabPosition) {
         if (ads.isEmpty()) {
             binding.llEmptyState.setVisibility(View.VISIBLE);
             binding.rvMyAds.setVisibility(View.GONE);

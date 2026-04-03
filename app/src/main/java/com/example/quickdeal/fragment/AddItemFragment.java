@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -24,10 +23,14 @@ import com.cloudinary.android.callback.UploadCallback;
 import com.example.quickdeal.adapter.SelectedImageAdapter;
 import com.example.quickdeal.databinding.FragmentAddItemBinding;
 import com.example.quickdeal.model.Product;
+import com.example.quickdeal.model.User;
 import com.example.quickdeal.repository.ProductRepository;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +49,7 @@ public class AddItemFragment extends Fragment {
 
     private FirebaseAuth mAuth;
     private ProductRepository productRepository;
+    private String userCity = "Unknown";
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(
@@ -86,6 +90,7 @@ public class AddItemFragment extends Fragment {
         progressDialog.setTitle("Uploading Product");
         progressDialog.setCancelable(false);
 
+        fetchUserCity();
         setupCategorySpinner();
         setupImageRecyclerView();
         setupListeners();
@@ -93,26 +98,35 @@ public class AddItemFragment extends Fragment {
         return binding.getRoot();
     }
 
-    private void setupCategorySpinner() {
-        List<String> categories = new ArrayList<>();
-        categories.add("Select Category");
-        categories.add("Electronics");
-        categories.add("Cars");
-        categories.add("Properties");
-        categories.add("Mobiles");
-        categories.add("Fashion");
-        categories.add("Bikes");
+    private void fetchUserCity() {
+        String uid = mAuth.getUid();
+        if (uid == null) return;
 
+        FirebaseDatabase.getInstance().getReference("Users").child(uid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        if (user != null && user.city != null) {
+                            userCity = user.city;
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
+    private void setupCategorySpinner() {
+        String[] categories = {"Electronics", "Cars", "Properties", "Mobiles", "Fashion", "Bikes", "Others"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_dropdown_item, categories);
+                android.R.layout.simple_list_item_1, categories);
         binding.spinnerCategory.setAdapter(adapter);
-        binding.spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedCategory = position > 0 ? categories.get(position) : "";
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+        
+        binding.spinnerCategory.setOnClickListener(v -> binding.spinnerCategory.showDropDown());
+        
+        binding.spinnerCategory.setOnItemClickListener((parent, view, position, id) -> {
+            selectedCategory = categories[position];
         });
     }
 
@@ -157,6 +171,7 @@ public class AddItemFragment extends Fragment {
         String title = binding.etTitle.getText().toString().trim();
         String price = binding.etPrice.getText().toString().trim();
         String description = binding.etDescription.getText().toString().trim();
+        boolean isNegotiable = binding.switchNegotiable.isChecked();
 
         if (title.isEmpty() || selectedCategory.isEmpty() || price.isEmpty() || description.isEmpty() || imageUris.size() < 1) {
             Toast.makeText(getContext(), "Bhai, sab details bharo aur kam se kam 1 photo dalo", Toast.LENGTH_SHORT).show();
@@ -165,17 +180,17 @@ public class AddItemFragment extends Fragment {
 
         progressDialog.setMessage("Images Cloudinary pe upload ho rahi hain...");
         progressDialog.show();
-        uploadImagesToCloudinary(title, price, description);
+        uploadImagesToCloudinary(title, price, description, isNegotiable);
     }
 
-    private void uploadImagesToCloudinary(String title, String price, String description) {
+    private void uploadImagesToCloudinary(String title, String price, String description, boolean isNegotiable) {
         imageUrls.clear();
         final int totalImages = imageUris.size();
         final int[] uploadCount = {0};
 
         for (Uri uri : imageUris) {
             MediaManager.get().upload(uri)
-                    .option("upload_preset", "quickdeal_upload") // Added your preset here
+                    .option("upload_preset", "quickdeal_upload")
                     .callback(new UploadCallback() {
                         @Override
                         public void onStart(String requestId) {}
@@ -190,7 +205,7 @@ public class AddItemFragment extends Fragment {
                             imageUrls.add(url);
 
                             if (uploadCount[0] == totalImages) {
-                                saveProductToFirebase(title, price, description);
+                                saveProductToFirebase(title, price, description, isNegotiable);
                             }
                         }
 
@@ -201,7 +216,7 @@ public class AddItemFragment extends Fragment {
                             
                             if (uploadCount[0] == totalImages) {
                                 if (imageUrls.size() > 0) {
-                                    saveProductToFirebase(title, price, description);
+                                    saveProductToFirebase(title, price, description, isNegotiable);
                                 } else {
                                     progressDialog.dismiss();
                                     Toast.makeText(getContext(), "Bhai, images upload nahi ho payi: " + error.getDescription(), Toast.LENGTH_SHORT).show();
@@ -215,15 +230,15 @@ public class AddItemFragment extends Fragment {
         }
     }
 
-    private void saveProductToFirebase(String title, String price, String description) {
+    private void saveProductToFirebase(String title, String price, String description, boolean isNegotiable) {
         progressDialog.setMessage("Product detail save ho rahi hai...");
         DatabaseReference productsRef = FirebaseDatabase.getInstance().getReference("products");
         String productId = productsRef.push().getKey();
         String userId = mAuth.getUid();
         long timestamp = System.currentTimeMillis();
 
-        // Storing all image URLs in the 'images' field (List<String>)
-        Product product = new Product(productId, title, price, imageUrls, description, "Available", selectedCategory, userId, timestamp);
+        // Storing all data including the user's city
+        Product product = new Product(productId, title, price, imageUrls, description, "Available", selectedCategory, userId, timestamp, isNegotiable, userCity);
 
         productRepository.addProduct(product, task -> {
             progressDialog.dismiss();
@@ -240,7 +255,9 @@ public class AddItemFragment extends Fragment {
         binding.etTitle.setText("");
         binding.etPrice.setText("");
         binding.etDescription.setText("");
-        binding.spinnerCategory.setSelection(0);
+        binding.spinnerCategory.setText("");
+        selectedCategory = "";
+        binding.switchNegotiable.setChecked(false);
         imageUris.clear();
         imageUrls.clear();
         updatePhotoUI();

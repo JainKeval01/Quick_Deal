@@ -95,7 +95,6 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
     private void loadSellerInfo() {
         if (product.sellerId == null) return;
 
-        // Fixed node name to "Users" (Capital U) to match Signup_page
         FirebaseDatabase.getInstance().getReference("Users")
                 .child(product.sellerId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -175,6 +174,13 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
         binding.tvTitle.setText(product.name);
         binding.tvDescription.setText(product.description);
         binding.tvStatus.setText(product.status);
+
+        // Setting Negotiable Status
+        if (product.isNegotiable) {
+            binding.tvNegotiable.setText("Price is Negotiable");
+        } else {
+            binding.tvNegotiable.setText("Fixed Price");
+        }
 
         if ("Available".equalsIgnoreCase(product.status)) {
             binding.tvStatus.setBackgroundResource(R.drawable.bg_status_green);

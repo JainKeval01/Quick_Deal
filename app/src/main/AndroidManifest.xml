@@ -16,6 +16,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.QuickDeal">
         <activity
+            android:name=".activities.HelpSupportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.EditProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.ForgotPassword"
             android:exported="false" />
         <activity

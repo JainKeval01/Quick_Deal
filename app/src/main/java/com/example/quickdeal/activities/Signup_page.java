@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -26,6 +27,12 @@ public class Signup_page extends AppCompatActivity {
     FirebaseAuth mAuth;
     DatabaseReference databaseReference;
 
+    private final String[] gujaratCities = {
+            "Ahmedabad", "Gandhinagar", "Surat", "Vadodara", "Rajkot",
+            "Bhavnagar", "Jamnagar", "Junagadh", "Anand", "Navsari",
+            "Morbi", "Nadiad", "Bharuch", "Mehsana", "Bhuj"
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,12 +50,11 @@ public class Signup_page extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users");
 
-        sBinding.back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Signup_page.this, Login_Page.class);
-                startActivity(intent);
-            }
+        setupCityDropdown();
+
+        sBinding.back.setOnClickListener(v -> {
+            Intent intent = new Intent(Signup_page.this, Login_Page.class);
+            startActivity(intent);
         });
         sBinding.login1.setOnClickListener(v -> finish());
 
@@ -59,8 +65,16 @@ public class Signup_page extends AppCompatActivity {
         });
     }
 
-    private void registerUser() {
+    private void setupCityDropdown() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, gujaratCities);
+        sBinding.etCity.setAdapter(adapter);
+        
+        // Show dropdown on click
+        sBinding.etCity.setOnClickListener(v -> sBinding.etCity.showDropDown());
+    }
 
+    private void registerUser() {
         String username = sBinding.etUsername.getText().toString().trim();
         String email = sBinding.etEmail.getText().toString().trim();
         String phone = sBinding.etPhone.getText().toString().trim();
@@ -69,9 +83,7 @@ public class Signup_page extends AppCompatActivity {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-
                     if (task.isSuccessful()) {
-
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         String uid = firebaseUser.getUid();
 
@@ -80,41 +92,22 @@ public class Signup_page extends AppCompatActivity {
                         databaseReference.child(uid)
                                 .setValue(user)
                                 .addOnCompleteListener(dbTask -> {
-
                                     if (dbTask.isSuccessful()) {
-
-                                        Toast.makeText(
-                                                Signup_page.this,
-                                                "Registration Successful",
-                                                Toast.LENGTH_SHORT
-                                        ).show();
-
-                                        Intent intent =
-                                                new Intent(Signup_page.this, TreeActivity.class);
+                                        Toast.makeText(Signup_page.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(Signup_page.this, TreeActivity.class);
                                         startActivity(intent);
                                         finish();
-
                                     } else {
-                                        Toast.makeText(
-                                                Signup_page.this,
-                                                "Database Error",
-                                                Toast.LENGTH_LONG
-                                        ).show();
+                                        Toast.makeText(Signup_page.this, "Database Error", Toast.LENGTH_LONG).show();
                                     }
                                 });
-
                     } else {
-                        Toast.makeText(
-                                Signup_page.this,
-                                task.getException().getMessage(),
-                                Toast.LENGTH_LONG
-                        ).show();
+                        Toast.makeText(Signup_page.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
     private boolean validateInput() {
-
         String username = sBinding.etUsername.getText().toString().trim();
         String email = sBinding.etEmail.getText().toString().trim();
         String phone = sBinding.etPhone.getText().toString().trim();
@@ -126,32 +119,26 @@ public class Signup_page extends AppCompatActivity {
             sBinding.etUsername.setError("Username required");
             return false;
         }
-
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             sBinding.etEmail.setError("Valid email required");
             return false;
         }
-
         if (phone.length() != 10) {
             sBinding.etPhone.setError("10 digit phone required");
             return false;
         }
-
         if (city.isEmpty()) {
             sBinding.etCity.setError("City required");
             return false;
         }
-
         if (password.length() < 6) {
             sBinding.etPassword.setError("Min 6 characters");
             return false;
         }
-
         if (!password.equals(confirmPassword)) {
             sBinding.etConfirmPassword.setError("Password mismatch");
             return false;
         }
-
         return true;
     }
 }

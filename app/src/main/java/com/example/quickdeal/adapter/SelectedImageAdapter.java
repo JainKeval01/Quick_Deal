@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.quickdeal.R;
 import java.util.List;
 
@@ -35,7 +36,15 @@ public class SelectedImageAdapter extends RecyclerView.Adapter<SelectedImageAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.ivImage.setImageURI(imageUris.get(position));
+        Uri currentUri = imageUris.get(position);
+        
+        // Using Glide to handle both local Uris and Web URLs
+        Glide.with(holder.ivImage.getContext())
+                .load(currentUri)
+                .placeholder(R.drawable.loading)
+                .centerCrop()
+                .into(holder.ivImage);
+
         holder.ivRemove.setOnClickListener(v -> {
             if (removeListener != null) {
                 removeListener.onRemove(position);

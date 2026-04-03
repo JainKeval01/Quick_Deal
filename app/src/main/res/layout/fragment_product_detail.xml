@@ -106,6 +106,16 @@
                     tools:text="AVAILABLE" />
             </LinearLayout>
 
+            <!-- NEGOTIABLE TEXT -->
+            <TextView
+                android:id="@+id/tvNegotiable"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                tools:text="Price is Negotiable" />
+
             <!-- TITLE -->
             <TextView
                 android:id="@+id/tvTitle"
@@ -195,12 +205,29 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <ImageView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="160dp"
-                android:layout_marginTop="8dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/sample_map" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_location"
+                    app:tint="#2563EB" />
+
+                <TextView
+                    android:id="@+id/tvLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Ahmedabad, Gujarat"
+                    android:textColor="#1E293B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/report"

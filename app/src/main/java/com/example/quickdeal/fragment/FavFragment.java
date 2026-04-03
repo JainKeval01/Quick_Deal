@@ -26,7 +26,7 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     private FragmentFavBinding binding;
     private ProductRepository productRepository;
     private ProductAdapter adapter;
-    private List<Product> favoriteProductsList = new ArrayList<>();
+    private final List<Product> favoriteProductsList = new ArrayList<>();
 
     public FavFragment() {
         // Required empty public constructor
@@ -92,6 +92,7 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
 
     @Override
     public void onItemClick(Product product) {
-        // For now, we do nothing. We will implement this later.
+        ProductDetailFragment bottomSheet = ProductDetailFragment.newInstance(product);
+        bottomSheet.show(getChildFragmentManager(), "ProductDetail");
     }
 }
