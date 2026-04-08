@@ -21,8 +21,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Your content here -->
-
             <!-- PRICE -->
             <TextView
                 android:id="@+id/tvPrice"
@@ -82,11 +80,12 @@
                             tools:text="Rahul Sharma" />
 
                         <TextView
+                            android:id="@+id/tvSellerMemberSince"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#666666"
                             android:textSize="13sp"
-                            tools:text="Member since 2021 · 4.8★" />
+                            android:text="Member" />
                     </LinearLayout>
 
                     <ImageView
@@ -125,12 +124,29 @@
                 android:textColor="@android:color/black"
                 android:textStyle="bold" />
 
-            <ImageView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="160dp"
-                android:layout_marginTop="8dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/sample_map" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_location"
+                    app:tint="#2563EB" />
+
+                <TextView
+                    android:id="@+id/tvLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Ahmedabad, Gujarat"
+                    android:textColor="#1E293B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- REPORT REASON -->
             <TextView
@@ -169,23 +185,23 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Delete Product"
+            android:text="Delete Ad"
             android:textColor="@android:color/white"
             app:backgroundTint="#D32F2F" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBanUser"
+        <Button
+            android:id="@+id/btnChat"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="Ban User"
-            android:textColor="@android:color/white"
-            app:backgroundTint="#3F51B5" />
+            android:backgroundTint="#2196F3"
+            android:text="Chat on WhatsApp"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 
-    <!-- App Bar (must be the last child for elevation to work correctly) -->
+    <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -209,7 +225,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@android:color/white"
+                android:background="@color/white"
                 app:layout_collapseMode="pin">
 
                 <FrameLayout

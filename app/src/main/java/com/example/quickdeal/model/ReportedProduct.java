@@ -5,9 +5,12 @@ import android.os.Parcelable;
 
 public class ReportedProduct implements Parcelable {
 
-    private String id;
-    public String name;
-    public String reportedBy;
+    public String reportId;
+    public String productId;
+    public String productName;
+    public String reporterId;
+    public String reporterName;
+    public String reason;
     public String timeAgo;
     public String imageUrl;
     public int reportCount;
@@ -17,10 +20,13 @@ public class ReportedProduct implements Parcelable {
     // Firebase requires an empty constructor
     public ReportedProduct() {}
 
-    public ReportedProduct(String id, String name, String reportedBy, String timeAgo, String imageUrl, int reportCount, String status, boolean isHighPriority) {
-        this.id = id;
-        this.name = name;
-        this.reportedBy = reportedBy;
+    public ReportedProduct(String reportId, String productId, String productName, String reporterId, String reporterName, String reason, String timeAgo, String imageUrl, int reportCount, String status, boolean isHighPriority) {
+        this.reportId = reportId;
+        this.productId = productId;
+        this.productName = productName;
+        this.reporterId = reporterId;
+        this.reporterName = reporterName;
+        this.reason = reason;
         this.timeAgo = timeAgo;
         this.imageUrl = imageUrl;
         this.reportCount = reportCount;
@@ -28,11 +34,13 @@ public class ReportedProduct implements Parcelable {
         this.isHighPriority = isHighPriority;
     }
 
-
     protected ReportedProduct(Parcel in) {
-        id = in.readString();
-        name = in.readString();
-        reportedBy = in.readString();
+        reportId = in.readString();
+        productId = in.readString();
+        productName = in.readString();
+        reporterId = in.readString();
+        reporterName = in.readString();
+        reason = in.readString();
         timeAgo = in.readString();
         imageUrl = in.readString();
         reportCount = in.readInt();
@@ -52,14 +60,6 @@ public class ReportedProduct implements Parcelable {
         }
     };
 
-    public String getId() {
-        return id;
-    }
-
-    public String getSellerName() {
-        return reportedBy;
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -67,9 +67,12 @@ public class ReportedProduct implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
-        dest.writeString(name);
-        dest.writeString(reportedBy);
+        dest.writeString(reportId);
+        dest.writeString(productId);
+        dest.writeString(productName);
+        dest.writeString(reporterId);
+        dest.writeString(reporterName);
+        dest.writeString(reason);
         dest.writeString(timeAgo);
         dest.writeString(imageUrl);
         dest.writeInt(reportCount);

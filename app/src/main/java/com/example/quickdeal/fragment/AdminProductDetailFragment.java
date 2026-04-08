@@ -1,6 +1,8 @@
 package com.example.quickdeal.fragment;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,21 +16,29 @@ import androidx.annotation.Nullable;
 import com.example.quickdeal.adapter.ProductImageAdapter;
 import com.example.quickdeal.databinding.FragmentAdminProductDetailBinding;
 import com.example.quickdeal.model.Product;
+import com.example.quickdeal.model.User;
 import com.example.quickdeal.repository.ProductRepository;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class AdminProductDetailFragment extends BottomSheetDialogFragment {
 
     private FragmentAdminProductDetailBinding binding;
     private String productId;
+    private String reportReason;
     private ProductRepository productRepository;
+    private String sellerPhone = "";
 
-    public static AdminProductDetailFragment newInstance(String productId) {
+    public static AdminProductDetailFragment newInstance(String productId, String reportReason) {
         AdminProductDetailFragment fragment = new AdminProductDetailFragment();
         Bundle args = new Bundle();
         args.putString("productId", productId);
+        args.putString("reportReason", reportReason);
         fragment.setArguments(args);
         return fragment;
     }
@@ -38,6 +48,7 @@ public class AdminProductDetailFragment extends BottomSheetDialogFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             productId = getArguments().getString("productId");
+            reportReason = getArguments().getString("reportReason");
         }
         productRepository = ProductRepository.getInstance();
         setCancelable(false);
@@ -75,11 +86,11 @@ public class AdminProductDetailFragment extends BottomSheetDialogFragment {
         Product product = productRepository.getProductById(productId);
 
         if (product != null) {
-            binding.tvPrice.setText(product.price);
+            binding.tvPrice.setText("₹" + product.price);
             binding.tvTitle.setText(product.name);
             binding.tvDescription.setText(product.description);
-            binding.tvSellerName.setText("User: " + product.sellerId);
-            binding.tvReportReason.setText("Reported Content");
+            binding.tvReportReason.setText(reportReason != null ? reportReason : "No reason provided");
+            loadSellerInfo(product.sellerId);
 
             if (product.images != null && !product.images.isEmpty()) {
                 ProductImageAdapter adapter = new ProductImageAdapter(product.images);
@@ -92,8 +103,41 @@ public class AdminProductDetailFragment extends BottomSheetDialogFragment {
 
         binding.btnBanProduct.setOnClickListener(v -> {
             productRepository.deleteProduct(productId);
-            Toast.makeText(getContext(), "Product Deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Ad Deleted", Toast.LENGTH_SHORT).show();
             dismiss();
         });
+
+        binding.btnChat.setOnClickListener(v -> {
+            if (!sellerPhone.isEmpty()) {
+                String url = "https://api.whatsapp.com/send?phone=+91" + sellerPhone;
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            } else {
+                Toast.makeText(getContext(), "Seller phone not found", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadSellerInfo(String sellerId) {
+        if (sellerId == null) return;
+
+        FirebaseDatabase.getInstance().getReference("Users").child(sellerId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        if (user != null && binding != null) {
+                            binding.tvSellerName.setText(user.username);
+                            sellerPhone = user.phone;
+                            if (user.city != null) {
+                                binding.tvLocation.setText(user.city);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 }

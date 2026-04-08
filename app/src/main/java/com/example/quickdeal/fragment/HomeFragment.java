@@ -1,6 +1,8 @@
 package com.example.quickdeal.fragment;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +24,7 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
     private FragmentHomeBinding binding;
     private ProductAdapter adapter;
     private final List<Product> productList = new ArrayList<>();
+    private final List<Product> fullProductList = new ArrayList<>();
     private ProductRepository productRepository;
 
     public HomeFragment() {
@@ -37,6 +40,7 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
 
         setupRecyclerView();
         setupCategoryListeners();
+        setupSearch();
 
         return binding.getRoot();
     }
@@ -49,6 +53,8 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
 
     @Override
     public void onDataChanged(List<Product> products) {
+        fullProductList.clear();
+        fullProductList.addAll(products);
         updateUIWithProducts(products);
     }
 
@@ -76,7 +82,7 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
     }
 
     private void setupCategoryListeners() {
-        binding.llAll.setOnClickListener(v -> updateUIWithProducts(productRepository.getAllProducts()));
+        binding.llAll.setOnClickListener(v -> updateUIWithProducts(fullProductList));
         binding.llElectronics.setOnClickListener(v -> filterByCategory("Electronics"));
         binding.llCars.setOnClickListener(v -> filterByCategory("Cars"));
         binding.llProperties.setOnClickListener(v -> filterByCategory("Properties"));
@@ -87,7 +93,39 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
 
     private void filterByCategory(String category) {
         binding.progressBar.setVisibility(View.VISIBLE);
-        List<Product> filteredList = productRepository.getProductsByCategory(category);
+        List<Product> filteredList = new ArrayList<>();
+        for (Product p : fullProductList) {
+            if (p.category != null && p.category.equalsIgnoreCase(category)) {
+                filteredList.add(p);
+            }
+        }
+        updateUIWithProducts(filteredList);
+    }
+
+    private void setupSearch() {
+        binding.etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterSearch(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void filterSearch(String query) {
+        List<Product> filteredList = new ArrayList<>();
+        for (Product product : fullProductList) {
+            if (product.name.toLowerCase().contains(query.toLowerCase()) || 
+                product.description.toLowerCase().contains(query.toLowerCase()) ||
+                (product.category != null && product.category.toLowerCase().contains(query.toLowerCase()))) {
+                filteredList.add(product);
+            }
+        }
         updateUIWithProducts(filteredList);
     }
 

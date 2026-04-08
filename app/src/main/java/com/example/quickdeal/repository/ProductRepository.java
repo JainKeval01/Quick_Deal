@@ -119,21 +119,14 @@ public class ProductRepository {
     }
 
     public void addProduct(Product product, OnCompleteListener<Void> completionListener) {
-
         String id = product.getId();
-
         if (id == null || id.isEmpty()) {
             id = mDatabase.push().getKey();
         }
-
         if (id != null) {
-
-            mDatabase.child(id)
-                    .setValue(product)
-                    .addOnCompleteListener(completionListener);
+            mDatabase.child(id).setValue(product).addOnCompleteListener(completionListener);
         }
     }
-
 
     public void reportProduct(ReportedProduct report, OnCompleteListener<Void> completionListener) {
         String reportId = mReportsDatabase.push().getKey();
@@ -143,7 +136,6 @@ public class ProductRepository {
     }
 
     public void toggleFavoriteStatus(Product product) {
-        // This is local for now as per current code, usually would be in DB per user
         if (product.isFavorite) {
             if (!favoriteProducts.contains(product)) {
                 favoriteProducts.add(product);
@@ -186,7 +178,23 @@ public class ProductRepository {
     }
     
     public void deleteProduct(String productId) {
+        // 1. Remove the product
         mDatabase.child(productId).removeValue();
-        // Also remove reports related to this product if needed
+        
+        // 2. Also remove all reports associated with this product
+        mReportsDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot reportSnapshot : snapshot.getChildren()) {
+                    ReportedProduct report = reportSnapshot.getValue(ReportedProduct.class);
+                    if (report != null && productId.equals(report.productId)) {
+                        reportSnapshot.getRef().removeValue();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 }

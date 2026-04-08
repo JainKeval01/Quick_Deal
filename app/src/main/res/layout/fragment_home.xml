@@ -95,6 +95,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:hint="Find cars, phones, furniture..."
+                            android:textColor="#000000"
                             android:textColorHint="#AAAAAA"
                             android:textSize="14sp"
                             android:background="@android:color/transparent"

@@ -61,8 +61,11 @@ public class ReportedProductAdapter extends RecyclerView.Adapter<ReportedProduct
         }
 
         public void bind(ReportedProduct p) {
-            tvProductTitle.setText(p.name);
-            tvReportedBy.setText("By: " + p.reportedBy + " • " + p.timeAgo);
+            tvProductTitle.setText(p.productName); 
+            
+            // Using reporterName instead of reporterId for a professional look
+            String reporter = (p.reporterName != null && !p.reporterName.isEmpty()) ? p.reporterName : "User " + p.reporterId;
+            tvReportedBy.setText("By: " + reporter + " • " + p.timeAgo);
 
             if (p.isHighPriority) {
                 tvHighPriority.setVisibility(View.VISIBLE);
@@ -72,7 +75,11 @@ public class ReportedProductAdapter extends RecyclerView.Adapter<ReportedProduct
 
             tvStatus.setText(p.status);
 
-            Glide.with(ivProductImage.getContext()).load(p.imageUrl).into(ivProductImage);
+            Glide.with(ivProductImage.getContext())
+                    .load(p.imageUrl)
+                    .placeholder(R.drawable.loading)
+                    .error(R.drawable.error)
+                    .into(ivProductImage);
 
             itemView.setOnClickListener(v -> {
                 if (itemClickListener != null) {

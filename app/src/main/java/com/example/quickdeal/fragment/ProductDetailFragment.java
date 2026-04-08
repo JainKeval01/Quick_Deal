@@ -31,6 +31,7 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
     private FragmentProductDetailBinding binding;
     private Product product;
     private ProductRepository productRepository;
+    private String currentUserName = "Unknown";
 
     public static ProductDetailFragment newInstance(Product product) {
         ProductDetailFragment fragment = new ProductDetailFragment();
@@ -47,6 +48,22 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             product = getArguments().getParcelable("product");
         }
         productRepository = ProductRepository.getInstance();
+        fetchCurrentUserName();
+    }
+
+    private void fetchCurrentUserName() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+        FirebaseDatabase.getInstance().getReference("Users").child(uid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        if (user != null) currentUserName = user.username;
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 
     @Override
@@ -103,6 +120,9 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
                         User user = snapshot.getValue(User.class);
                         if (user != null && binding != null) {
                             binding.tvSellerName.setText(user.username);
+                            if (user.city != null) {
+                                binding.tvLocation.setText(user.city);
+                            }
                         }
                     }
 
@@ -130,7 +150,7 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
                     if (checkedItem[0] != -1) {
                         submitReport(reportReasons[checkedItem[0]]);
                     } else {
-                        Toast.makeText(getContext(), "Pehle reason toh select karle bhai!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Please select a reason", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Cancel", null)
@@ -140,11 +160,15 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
     private void submitReport(String reason) {
         String userId = FirebaseAuth.getInstance().getUid();
         String imageUrl = (product.images != null && !product.images.isEmpty()) ? product.images.get(0) : "";
-        
+        String reportId = FirebaseDatabase.getInstance().getReference("reports").push().getKey();
+
         ReportedProduct report = new ReportedProduct(
+                reportId,
                 product.getId(),
                 product.name,
                 userId,
+                currentUserName,
+                reason,
                 "Just now",
                 imageUrl,
                 1,
@@ -154,9 +178,9 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
 
         productRepository.reportProduct(report, task -> {
             if (task.isSuccessful()) {
-                Toast.makeText(getContext(), "Ad report ho gaya, admin check karega.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Product reported", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getContext(), "Report karne me error aaya.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Failed to report product", Toast.LENGTH_SHORT).show();
             }
             dismiss();
         });
@@ -175,7 +199,6 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
         binding.tvDescription.setText(product.description);
         binding.tvStatus.setText(product.status);
 
-        // Setting Negotiable Status
         if (product.isNegotiable) {
             binding.tvNegotiable.setText("Price is Negotiable");
         } else {
@@ -186,6 +209,10 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             binding.tvStatus.setBackgroundResource(R.drawable.bg_status_green);
         } else {
             binding.tvStatus.setBackgroundResource(R.drawable.bg_status_red);
+        }
+
+        if (product.location != null && !product.location.isEmpty()) {
+            binding.tvLocation.setText(product.location);
         }
     }
 

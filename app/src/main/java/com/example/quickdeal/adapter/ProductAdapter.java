@@ -1,6 +1,5 @@
 package com.example.quickdeal.adapter;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,10 +79,21 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
         public void bind(Product p) {
             name.setText(p.name);
-            price.setText(p.price);
+            price.setText("₹" + p.price);
+            
+            // Dynamic Location Fix
+            if (p.location != null && !p.location.isEmpty()) {
+                location.setText(p.location);
+            } else {
+                location.setText("Location N/A");
+            }
+
             if (p.images != null && !p.images.isEmpty()) {
-                Glide.with(image.getContext()).load(p.images.get(0)).placeholder(R.drawable.loading)
-                        .error(R.drawable.error).into(image);
+                Glide.with(image.getContext())
+                        .load(p.images.get(0))
+                        .placeholder(R.drawable.loading)
+                        .error(R.drawable.error)
+                        .into(image);
             }
 
             updateFavoriteIcon(p);
