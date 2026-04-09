@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- Header Section - Fixed -->
+    <!-- Header Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,7 +16,6 @@
         android:background="@android:color/white"
         android:elevation="2dp">
 
-        <!-- My Ads Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -64,55 +63,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#A9BFD5"
-            android:orientation="vertical">
-
-            <!-- Tabs Section with Background -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp">
-
-                <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/tabLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:background="@android:color/transparent"
-                    app:tabMode="fixed"
-                    app:tabGravity="fill"
-                    app:tabIndicatorColor="@android:color/transparent"
-                    app:tabIndicatorHeight="0dp"
-                    app:tabBackground="@drawable/tab_selector"
-                    app:tabSelectedTextColor="#FFFFFF"
-                    app:tabTextColor="#666666"
-                    app:tabRippleColor="@null"
-                    app:tabPaddingStart="0dp"
-                    app:tabPaddingEnd="0dp"
-                    app:tabTextAppearance="@style/CustomTabText">
-
-                    <com.google.android.material.tabs.TabItem
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="Active" />
-
-                    <com.google.android.material.tabs.TabItem
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:text="Sold" />
-
-                </com.google.android.material.tabs.TabLayout>
-
-            </LinearLayout>
+            android:orientation="vertical"
+            android:paddingTop="12dp">
 
             <!-- RecyclerView Container -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <!-- RecyclerView for Ads -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvMyAds"
                     android:layout_width="match_parent"

@@ -4,7 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -39,6 +38,7 @@ public class EditItem extends AppCompatActivity {
     private String productId;
     private String sellerId;
     private long timestamp;
+    private String location;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(
@@ -48,17 +48,21 @@ public class EditItem extends AppCompatActivity {
                             if (result.getData().getClipData() != null) {
                                 int count = result.getData().getClipData().getItemCount();
                                 for (int i = 0; i < count; i++) {
-                                    if (allDisplayUris.size() < 10) {
-                                        Uri uri = result.getData().getClipData().getItemAt(i).getUri();
-                                        newImageUris.add(uri);
-                                        allDisplayUris.add(uri);
+                                    if (allDisplayUris.size() >= 10) {
+                                        Toast.makeText(this, "Maximum limit of 10 images reached.", Toast.LENGTH_SHORT).show();
+                                        break;
                                     }
+                                    Uri uri = result.getData().getClipData().getItemAt(i).getUri();
+                                    newImageUris.add(uri);
+                                    allDisplayUris.add(uri);
                                 }
                             } else if (result.getData().getData() != null) {
                                 if (allDisplayUris.size() < 10) {
                                     Uri uri = result.getData().getData();
                                     newImageUris.add(uri);
                                     allDisplayUris.add(uri);
+                                } else {
+                                    Toast.makeText(this, "Maximum limit of 10 images reached.", Toast.LENGTH_SHORT).show();
                                 }
                             }
                             updatePhotoUI();
@@ -72,7 +76,7 @@ public class EditItem extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Updating Item");
+        progressDialog.setTitle("Processing Request");
         progressDialog.setCancelable(false);
 
         setupCategory();
@@ -81,6 +85,10 @@ public class EditItem extends AppCompatActivity {
 
         binding.tvReset.setOnClickListener(v -> finish());
         binding.cvAddMainPhoto.setOnClickListener(v -> {
+            if (allDisplayUris.size() >= 10) {
+                Toast.makeText(this, "Maximum limit of 10 images reached.", Toast.LENGTH_SHORT).show();
+                return;
+            }
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("image/*");
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -104,10 +112,12 @@ public class EditItem extends AppCompatActivity {
         });
         binding.rvSelectedImages.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         binding.rvSelectedImages.setAdapter(imageAdapter);
+        binding.rvSelectedImages.setHasFixedSize(true);
     }
 
     private void setupCategory() {
-        List<String> categories = Arrays.asList("Mobiles", "Electronics", "Vehicles", "Furniture", "Fashion", "Books", "Sports", "Others");
+        // Updated category list to be consistent with Home and Add Item screens
+        List<String> categories = Arrays.asList("Electronics", "Cars", "Properties", "Mobiles", "Fashion", "Bikes", "Others");
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
         binding.spinnerCategory.setAdapter(adapter);
     }
@@ -119,9 +129,9 @@ public class EditItem extends AppCompatActivity {
         String price = getIntent().getStringExtra("price");
         String category = getIntent().getStringExtra("category");
         sellerId = getIntent().getStringExtra("sellerId");
+        location = getIntent().getStringExtra("location");
         timestamp = getIntent().getLongExtra("timestamp", System.currentTimeMillis());
         
-        // Correctly retrieving the isNegotiable boolean
         boolean isNegotiable = getIntent().getBooleanExtra("isNegotiable", false);
 
         ArrayList<String> existingImages = getIntent().getStringArrayListExtra("images");
@@ -135,8 +145,6 @@ public class EditItem extends AppCompatActivity {
         binding.etTitle.setText(title);
         binding.etPrice.setText(price);
         binding.etDescription.setText(description);
-        
-        // Setting the saved state of the switch
         binding.switchNegotiable.setChecked(isNegotiable);
         
         setSpinnerValue(category);
@@ -167,11 +175,11 @@ public class EditItem extends AppCompatActivity {
         boolean isNegotiable = binding.switchNegotiable.isChecked();
 
         if (title.isEmpty() || price.isEmpty() || description.isEmpty() || allDisplayUris.isEmpty()) {
-            Toast.makeText(this, "Bhai, sab details bharo aur kam se kam 1 photo rakho", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please provide all required details and at least one image.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        progressDialog.setMessage("Updating...");
+        progressDialog.setMessage("Saving updates...");
         progressDialog.show();
 
         if (newImageUris.isEmpty()) {
@@ -215,15 +223,15 @@ public class EditItem extends AppCompatActivity {
     private void saveToFirebase(String title, String price, String description, String category, boolean isNegotiable) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("products").child(productId);
         
-        Product updatedProduct = new Product(productId, title, price, imageUrls, description, "Available", category, sellerId, timestamp, isNegotiable);
+        Product updatedProduct = new Product(productId, title, price, imageUrls, description, "Available", category, sellerId, timestamp, isNegotiable, location);
         
         ref.setValue(updatedProduct).addOnCompleteListener(task -> {
             progressDialog.dismiss();
             if (task.isSuccessful()) {
-                Toast.makeText(EditItem.this, "Item Updated Successfully!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditItem.this, "Information updated successfully.", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
-                Toast.makeText(EditItem.this, "Update Failed!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditItem.this, "Failed to update information. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
     }

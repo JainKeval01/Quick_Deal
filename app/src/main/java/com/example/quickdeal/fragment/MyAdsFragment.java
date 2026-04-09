@@ -14,7 +14,6 @@ import com.example.quickdeal.adapter.MyAdsAdapter;
 import com.example.quickdeal.databinding.FragmentMyAdsBinding;
 import com.example.quickdeal.model.Product;
 import com.example.quickdeal.repository.ProductRepository;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -24,8 +23,7 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
 
     private FragmentMyAdsBinding binding;
     private ProductRepository productRepository;
-    private final List<Product> activeAds = new ArrayList<>();
-    private final List<Product> soldAds = new ArrayList<>();
+    private final List<Product> userAds = new ArrayList<>();
     private String currentUserId;
 
     public MyAdsFragment() {
@@ -40,8 +38,6 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
         productRepository = ProductRepository.getInstance();
         productRepository.setProductListener(this);
 
-        setupTabLayout();
-        
         return binding.getRoot();
     }
 
@@ -58,16 +54,11 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
     }
 
     private void filterUserAds(List<Product> products) {
-        activeAds.clear();
-        soldAds.clear();
+        userAds.clear();
         
         for (Product product : products) {
             if (product.sellerId != null && product.sellerId.equals(currentUserId)) {
-                if ("Available".equalsIgnoreCase(product.status)) {
-                    activeAds.add(product);
-                } else if ("Sold".equalsIgnoreCase(product.status)) {
-                    soldAds.add(product);
-                }
+                userAds.add(product);
             }
         }
         
@@ -76,35 +67,21 @@ public class MyAdsFragment extends Fragment implements ProductRepository.OnDataC
 
     private void updateUI() {
         if (binding == null) return;
-        int currentTab = binding.tabLayout.getSelectedTabPosition();
-        setupRecyclerView(currentTab == 0 ? activeAds : soldAds, currentTab);
+        setupRecyclerView(userAds);
     }
 
-    private void setupTabLayout() {
-        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                updateUI();
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
-    }
-
-    private void setupRecyclerView(List<Product> ads, int tabPosition) {
+    private void setupRecyclerView(List<Product> ads) {
         MyAdsAdapter adapter = new MyAdsAdapter(ads);
         binding.rvMyAds.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvMyAds.setAdapter(adapter);
-        checkEmptyState(ads, tabPosition);
+        checkEmptyState(ads);
     }
 
-    private void checkEmptyState(List<Product> ads, int tabPosition) {
+    private void checkEmptyState(List<Product> ads) {
         if (ads.isEmpty()) {
             binding.llEmptyState.setVisibility(View.VISIBLE);
             binding.rvMyAds.setVisibility(View.GONE);
-            binding.tvEmptyTitle.setText(tabPosition == 0 ? "No Active Ads" : "No Sold Items");
+            binding.tvEmptyTitle.setText("No Ads Found");
         } else {
             binding.llEmptyState.setVisibility(View.GONE);
             binding.rvMyAds.setVisibility(View.VISIBLE);

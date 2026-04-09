@@ -9,6 +9,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.quickdeal.databinding.ActivityLoginPageBinding;
+import com.example.quickdeal.repository.ProductRepository;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class Login_Page extends AppCompatActivity {
@@ -38,16 +39,20 @@ public class Login_Page extends AppCompatActivity {
             String password = loginBinding.passwordEditText.getText().toString().trim();
 
             if (validateInput(email, password)) {
+                
+                // Reset repository before any login to clear old user data
+                ProductRepository.resetInstance();
 
                 // ADMIN LOGIN
                 if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASSWORD)) {
 
                     Toast.makeText(Login_Page.this,
-                            "Admin Login Successful",
+                            "Administrator login successful.",
                             Toast.LENGTH_SHORT).show();
 
                     Intent adminIntent =
                             new Intent(Login_Page.this, AdminHomeActivity.class);
+                    adminIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(adminIntent);
                     finish();
 
@@ -81,38 +86,19 @@ public class Login_Page extends AppCompatActivity {
                     if (task.isSuccessful()) {
 
                         Toast.makeText(Login_Page.this,
-                                "Login Successful",
+                                "Login successful.",
                                 Toast.LENGTH_SHORT).show();
 
                         Intent userIntent =
                                 new Intent(Login_Page.this, TreeActivity.class);
+                        userIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(userIntent);
                         finish();
 
                     } else {
 
                         Toast.makeText(Login_Page.this,
-                                "Invalid Email or Password",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
-    }
-
-    private void resetPassword(String email) {
-
-        mAuth.sendPasswordResetEmail(email)
-                .addOnCompleteListener(task -> {
-
-                    if (task.isSuccessful()) {
-
-                        Toast.makeText(Login_Page.this,
-                                "Reset link sent to your email",
-                                Toast.LENGTH_LONG).show();
-
-                    } else {
-
-                        Toast.makeText(Login_Page.this,
-                                "Error sending reset email",
+                                "Invalid email or password. Please try again.",
                                 Toast.LENGTH_LONG).show();
                     }
                 });
@@ -121,22 +107,22 @@ public class Login_Page extends AppCompatActivity {
     private boolean validateInput(String email, String password) {
 
         if (email.isEmpty()) {
-            loginBinding.emailEditText.setError("Email is required");
+            loginBinding.emailEditText.setError("Email address is required.");
             return false;
         }
 
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            loginBinding.emailEditText.setError("Valid email required");
+            loginBinding.emailEditText.setError("Please enter a valid email address.");
             return false;
         }
 
         if (password.isEmpty()) {
-            loginBinding.passwordEditText.setError("Password is required");
+            loginBinding.passwordEditText.setError("Password is required.");
             return false;
         }
 
         if (password.length() < 6) {
-            loginBinding.passwordEditText.setError("Minimum 6 characters required");
+            loginBinding.passwordEditText.setError("Password must be at least 6 characters.");
             return false;
         }
 

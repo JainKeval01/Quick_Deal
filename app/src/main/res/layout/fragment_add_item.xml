@@ -126,60 +126,57 @@
                         android:textColor="#666666"
                         android:layout_marginBottom="16dp" />
 
-                    <HorizontalScrollView
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:scrollbars="none">
+                        android:layout_height="120dp"
+                        android:orientation="horizontal">
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cvAddMainPhoto"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:backgroundTint="#F5F8FF"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_gravity="center_vertical">
 
-                            <androidx.cardview.widget.CardView
-                                android:id="@+id/cvAddMainPhoto"
-                                android:layout_width="120dp"
-                                android:layout_height="120dp"
-                                app:cardCornerRadius="12dp"
-                                app:cardElevation="0dp"
-                                android:backgroundTint="#F5F8FF"
-                                android:layout_marginEnd="12dp"
-                                android:clickable="true"
-                                android:focusable="true">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="@drawable/bg_dashed_border">
 
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:orientation="vertical"
-                                    android:gravity="center"
-                                    android:background="@drawable/bg_dashed_border">
+                                <ImageView
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
+                                    android:src="@drawable/ic_camera"
+                                    app:tint="#5C6FFF" />
 
-                                    <ImageView
-                                        android:layout_width="40dp"
-                                        android:layout_height="40dp"
-                                        android:src="@drawable/ic_camera"
-                                        app:tint="#5C6FFF" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Add"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#5C6FFF"
+                                    android:layout_marginTop="4dp" />
 
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Add Photo"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold"
-                                        android:textColor="#5C6FFF"
-                                        android:layout_marginTop="8dp" />
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
 
-                                </LinearLayout>
-                            </androidx.cardview.widget.CardView>
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvSelectedImages"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="8dp"
+                            android:orientation="horizontal"
+                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                            tools:listitem="@layout/item_selected_image" />
 
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/rvSelectedImages"
-                                android:layout_width="wrap_content"
-                                android:layout_height="120dp"
-                                android:orientation="horizontal"/>
-
-                        </LinearLayout>
-                    </HorizontalScrollView>
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -234,7 +231,6 @@
                         android:letterSpacing="0.1"
                         android:layout_marginBottom="8dp" />
 
-                    <!-- CATEGORY DROPDOWN WITH CUSTOM DESIGN -->
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:layout_width="match_parent"
@@ -413,7 +409,7 @@
                 android:id="@+id/btnPostNow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Post Now"
+                android:text="Post Advertisement"
                 android:textSize="16sp"
                 android:textColor="@android:color/white"
                 android:backgroundTint="#5C6FFF"

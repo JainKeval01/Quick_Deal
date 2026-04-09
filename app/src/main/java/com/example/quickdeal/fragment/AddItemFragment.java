@@ -87,7 +87,7 @@ public class AddItemFragment extends Fragment {
         productRepository = ProductRepository.getInstance();
 
         progressDialog = new ProgressDialog(getContext());
-        progressDialog.setTitle("Uploading Product");
+        progressDialog.setTitle("Processing Request");
         progressDialog.setCancelable(false);
 
         fetchUserCity();
@@ -137,12 +137,13 @@ public class AddItemFragment extends Fragment {
         });
         binding.rvSelectedImages.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.rvSelectedImages.setAdapter(imageAdapter);
+        binding.rvSelectedImages.setHasFixedSize(true);
     }
 
     private void setupListeners() {
         binding.cvAddMainPhoto.setOnClickListener(v -> {
             if (imageUris.size() >= 10) {
-                Toast.makeText(getContext(), "Maximum 10 images allowed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "You can only upload a maximum of 10 images.", Toast.LENGTH_LONG).show();
                 return;
             }
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -158,13 +159,6 @@ public class AddItemFragment extends Fragment {
     private void updatePhotoUI() {
         binding.tvPhotoCount.setText(imageUris.size() + "/10");
         imageAdapter.notifyDataSetChanged();
-        if (imageUris.size() >= 10) {
-            binding.cvAddMainPhoto.setEnabled(false);
-            binding.cvAddMainPhoto.setAlpha(0.5f);
-        } else {
-            binding.cvAddMainPhoto.setEnabled(true);
-            binding.cvAddMainPhoto.setAlpha(1f);
-        }
     }
 
     private void validateAndUpload() {
@@ -174,11 +168,11 @@ public class AddItemFragment extends Fragment {
         boolean isNegotiable = binding.switchNegotiable.isChecked();
 
         if (title.isEmpty() || selectedCategory.isEmpty() || price.isEmpty() || description.isEmpty() || imageUris.size() < 1) {
-            Toast.makeText(getContext(), "Bhai, sab details bharo aur kam se kam 1 photo dalo", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please provide all details and at least one image.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        progressDialog.setMessage("Images Cloudinary pe upload ho rahi hain...");
+        progressDialog.setMessage("Uploading images...");
         progressDialog.show();
         uploadImagesToCloudinary(title, price, description, isNegotiable);
     }
@@ -219,7 +213,7 @@ public class AddItemFragment extends Fragment {
                                     saveProductToFirebase(title, price, description, isNegotiable);
                                 } else {
                                     progressDialog.dismiss();
-                                    Toast.makeText(getContext(), "Bhai, images upload nahi ho payi: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Failed to upload images. Please try again.", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
@@ -231,22 +225,21 @@ public class AddItemFragment extends Fragment {
     }
 
     private void saveProductToFirebase(String title, String price, String description, boolean isNegotiable) {
-        progressDialog.setMessage("Product detail save ho rahi hai...");
+        progressDialog.setMessage("Finalizing your advertisement...");
         DatabaseReference productsRef = FirebaseDatabase.getInstance().getReference("products");
         String productId = productsRef.push().getKey();
         String userId = mAuth.getUid();
         long timestamp = System.currentTimeMillis();
 
-        // Storing all data including the user's city
         Product product = new Product(productId, title, price, imageUrls, description, "Available", selectedCategory, userId, timestamp, isNegotiable, userCity);
 
         productRepository.addProduct(product, task -> {
             progressDialog.dismiss();
             if (task.isSuccessful()) {
-                Toast.makeText(getContext(), "Ad post ho gaya bhai!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Advertisement posted successfully!", Toast.LENGTH_SHORT).show();
                 resetForm();
             } else {
-                Toast.makeText(getContext(), "Database me save karne me error aaya", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Failed to save product details. Please check your connection.", Toast.LENGTH_SHORT).show();
             }
         });
     }

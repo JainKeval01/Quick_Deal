@@ -1,5 +1,6 @@
 package com.example.quickdeal.activities;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
@@ -25,6 +26,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private String userId;
+    private ProgressDialog progressDialog;
 
     private final String[] gujaratCities = {
             "Ahmedabad", "Gandhinagar", "Surat", "Vadodara", "Rajkot",
@@ -42,6 +44,10 @@ public class EditProfileActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference("Users");
         userId = mAuth.getUid();
 
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Updating profile information...");
+        progressDialog.setCancelable(false);
+
         setupCityDropdown();
         loadUserData();
 
@@ -53,7 +59,13 @@ public class EditProfileActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, gujaratCities);
         binding.etCity.setAdapter(adapter);
+        
         binding.etCity.setOnClickListener(v -> binding.etCity.showDropDown());
+        
+        binding.etCity.setOnItemClickListener((parent, view, position, id) -> {
+            String selection = (String) parent.getItemAtPosition(position);
+            binding.etCity.setText(selection, false);
+        });
     }
 
     private void loadUserData() {
@@ -66,13 +78,13 @@ public class EditProfileActivity extends AppCompatActivity {
                 if (user != null) {
                     binding.etUsername.setText(user.username);
                     binding.etPhone.setText(user.phone);
-                    binding.etCity.setText(user.city);
+                    binding.etCity.setText(user.city != null ? user.city : "", false);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(EditProfileActivity.this, "Error loading data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditProfileActivity.this, "Failed to retrieve user data.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -82,10 +94,22 @@ public class EditProfileActivity extends AppCompatActivity {
         String phone = binding.etPhone.getText().toString().trim();
         String city = binding.etCity.getText().toString().trim();
 
-        if (username.isEmpty() || phone.isEmpty() || city.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        if (username.isEmpty()) {
+            binding.etUsername.setError("Please enter a username");
             return;
         }
+
+        if (phone.length() != 10) {
+            binding.etPhone.setError("Phone number must be exactly 10 digits");
+            return;
+        }
+
+        if (city.isEmpty()) {
+            Toast.makeText(this, "Please select a city.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        progressDialog.show();
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("username", username);
@@ -94,11 +118,46 @@ public class EditProfileActivity extends AppCompatActivity {
 
         mDatabase.child(userId).updateChildren(updates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                Toast.makeText(EditProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-                finish();
+                // Now update all products belonging to this user
+                updateProductsLocation(city);
             } else {
-                Toast.makeText(EditProfileActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
+                Toast.makeText(EditProfileActivity.this, "Could not update profile. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateProductsLocation(String newCity) {
+        DatabaseReference productsRef = FirebaseDatabase.getInstance().getReference("products");
+        productsRef.orderByChild("sellerId").equalTo(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Map<String, Object> productUpdates = new HashMap<>();
+                        for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                            // Update the location field for each product found
+                            productUpdates.put(postSnapshot.getKey() + "/location", newCity);
+                        }
+                        
+                        if (!productUpdates.isEmpty()) {
+                            productsRef.updateChildren(productUpdates).addOnCompleteListener(task -> {
+                                progressDialog.dismiss();
+                                Toast.makeText(EditProfileActivity.this, "Profile and advertisements updated successfully.", Toast.LENGTH_SHORT).show();
+                                finish();
+                            });
+                        } else {
+                            progressDialog.dismiss();
+                            Toast.makeText(EditProfileActivity.this, "Profile updated successfully.", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        progressDialog.dismiss();
+                        Toast.makeText(EditProfileActivity.this, "Profile updated, but failed to update advertisements.", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                });
     }
 }

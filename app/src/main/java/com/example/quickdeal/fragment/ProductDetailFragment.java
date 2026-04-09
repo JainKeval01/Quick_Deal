@@ -1,6 +1,8 @@
 package com.example.quickdeal.fragment;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +34,8 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
     private Product product;
     private ProductRepository productRepository;
     private String currentUserName = "Unknown";
+    private String sellerPhone;
+    private String currentUserId;
 
     public static ProductDetailFragment newInstance(Product product) {
         ProductDetailFragment fragment = new ProductDetailFragment();
@@ -48,13 +52,13 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             product = getArguments().getParcelable("product");
         }
         productRepository = ProductRepository.getInstance();
+        currentUserId = FirebaseAuth.getInstance().getUid();
         fetchCurrentUserName();
     }
 
     private void fetchCurrentUserName() {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) return;
-        FirebaseDatabase.getInstance().getReference("Users").child(uid)
+        if (currentUserId == null) return;
+        FirebaseDatabase.getInstance().getReference("Users").child(currentUserId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -96,6 +100,13 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             populateUI();
             updateWishlistButton();
             loadSellerInfo();
+
+            // Restriction: User cannot report, chat or call themselves
+            if (product.sellerId != null && product.sellerId.equals(currentUserId)) {
+                binding.report.setVisibility(View.GONE);
+                binding.btnChat.setVisibility(View.GONE);
+                binding.icCall.setVisibility(View.GONE);
+            }
         }
 
         binding.ivClose.setOnClickListener(v -> dismiss());
@@ -107,6 +118,39 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
         });
 
         binding.report.setOnClickListener(v -> showReportDialog());
+
+        binding.btnChat.setOnClickListener(v -> {
+            if (sellerPhone != null && !sellerPhone.isEmpty()) {
+                openWhatsApp();
+            } else {
+                Toast.makeText(getContext(), "Seller contact info not available", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        binding.icCall.setOnClickListener(v -> {
+            if (sellerPhone != null && !sellerPhone.isEmpty()) {
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:" + sellerPhone));
+                startActivity(intent);
+            } else {
+                Toast.makeText(getContext(), "Seller phone number not available", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void openWhatsApp() {
+        String message = "Hi, I'm interested in your product: " + product.name +
+                "\nPrice: ₹" + product.price +
+                "\nCheck it out: " + (product.images != null && !product.images.isEmpty() ? product.images.get(0) : "");
+
+        String url = "https://api.whatsapp.com/send?phone=" + sellerPhone + "&text=" + Uri.encode(message);
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "WhatsApp not installed", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadSellerInfo() {
@@ -120,6 +164,7 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
                         User user = snapshot.getValue(User.class);
                         if (user != null && binding != null) {
                             binding.tvSellerName.setText(user.username);
+                            sellerPhone = user.phone;
                             if (user.city != null) {
                                 binding.tvLocation.setText(user.city);
                             }

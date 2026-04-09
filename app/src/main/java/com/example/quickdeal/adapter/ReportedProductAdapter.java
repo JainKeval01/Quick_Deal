@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -63,7 +64,6 @@ public class ReportedProductAdapter extends RecyclerView.Adapter<ReportedProduct
         public void bind(ReportedProduct p) {
             tvProductTitle.setText(p.productName); 
             
-            // Using reporterName instead of reporterId for a professional look
             String reporter = (p.reporterName != null && !p.reporterName.isEmpty()) ? p.reporterName : "User " + p.reporterId;
             tvReportedBy.setText("By: " + reporter + " • " + p.timeAgo);
 
@@ -74,6 +74,15 @@ public class ReportedProductAdapter extends RecyclerView.Adapter<ReportedProduct
             }
 
             tvStatus.setText(p.status);
+            
+            // UI Feedback for Status
+            if ("Visited".equalsIgnoreCase(p.status)) {
+                tvStatus.setBackgroundResource(R.drawable.bg_status_green);
+                tvStatus.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.white));
+            } else {
+                tvStatus.setBackgroundResource(R.drawable.bg_status_yellow);
+                tvStatus.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.black));
+            }
 
             Glide.with(ivProductImage.getContext())
                     .load(p.imageUrl)

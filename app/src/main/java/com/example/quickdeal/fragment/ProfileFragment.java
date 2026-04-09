@@ -135,6 +135,7 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
 
         binding.btnLogout.setOnClickListener(v -> {
             mAuth.signOut();
+            ProductRepository.resetInstance(); 
             Intent intent = new Intent(requireActivity(), Login_Page.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
@@ -207,21 +208,15 @@ public class ProfileFragment extends Fragment implements ProductRepository.OnDat
         if (binding == null) return;
 
         String userId = mAuth.getUid();
-        int activeCount = 0;
-        int soldCount = 0;
+        int totalAds = 0;
 
         for (Product p : products) {
             if (p.sellerId != null && p.sellerId.equals(userId)) {
-                if ("Available".equalsIgnoreCase(p.status)) {
-                    activeCount++;
-                } else if ("Sold".equalsIgnoreCase(p.status)) {
-                    soldCount++;
-                }
+                totalAds++;
             }
         }
 
-        binding.tvActiveAdsCount.setText(String.valueOf(activeCount));
-        binding.tvSoldItemsCount.setText(String.valueOf(soldCount));
+        binding.tvActiveAdsCount.setText(String.valueOf(totalAds));
     }
 
     @Override

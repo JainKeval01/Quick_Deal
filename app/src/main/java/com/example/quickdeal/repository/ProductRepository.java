@@ -24,6 +24,9 @@ public class ProductRepository {
     private final List<ReportedProduct> reportedProducts = new ArrayList<>();
     private OnDataChangedListener productListener;
     private OnReportsChangedListener reportsListener;
+    
+    private ValueEventListener productValueListener;
+    private ValueEventListener reportsValueListener;
 
     public interface OnDataChangedListener {
         void onDataChanged(List<Product> products);
@@ -48,8 +51,15 @@ public class ProductRepository {
         return instance;
     }
 
+    public static synchronized void resetInstance() {
+        if (instance != null) {
+            instance.stopListening();
+            instance = null;
+        }
+    }
+
     private void startListening() {
-        mDatabase.addValueEventListener(new ValueEventListener() {
+        productValueListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allProducts.clear();
@@ -68,9 +78,10 @@ public class ProductRepository {
             public void onCancelled(@NonNull DatabaseError error) {
                 if (productListener != null) productListener.onError(error.getMessage());
             }
-        });
+        };
+        mDatabase.addValueEventListener(productValueListener);
 
-        mReportsDatabase.addValueEventListener(new ValueEventListener() {
+        reportsValueListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 reportedProducts.clear();
@@ -89,7 +100,17 @@ public class ProductRepository {
             public void onCancelled(@NonNull DatabaseError error) {
                 if (reportsListener != null) reportsListener.onError(error.getMessage());
             }
-        });
+        };
+        mReportsDatabase.addValueEventListener(reportsValueListener);
+    }
+
+    public void stopListening() {
+        if (productValueListener != null) {
+            mDatabase.removeEventListener(productValueListener);
+        }
+        if (reportsValueListener != null) {
+            mReportsDatabase.removeEventListener(reportsValueListener);
+        }
     }
 
     public void setProductListener(OnDataChangedListener listener) {
@@ -129,9 +150,14 @@ public class ProductRepository {
     }
 
     public void reportProduct(ReportedProduct report, OnCompleteListener<Void> completionListener) {
-        String reportId = mReportsDatabase.push().getKey();
-        if (reportId != null) {
-            mReportsDatabase.child(reportId).setValue(report).addOnCompleteListener(completionListener);
+        if (report.reportId != null) {
+            mReportsDatabase.child(report.reportId).setValue(report).addOnCompleteListener(completionListener);
+        } else {
+            String reportId = mReportsDatabase.push().getKey();
+            if (reportId != null) {
+                report.reportId = reportId;
+                mReportsDatabase.child(reportId).setValue(report).addOnCompleteListener(completionListener);
+            }
         }
     }
 
@@ -178,10 +204,7 @@ public class ProductRepository {
     }
     
     public void deleteProduct(String productId) {
-        // 1. Remove the product
         mDatabase.child(productId).removeValue();
-        
-        // 2. Also remove all reports associated with this product
         mReportsDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

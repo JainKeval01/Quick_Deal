@@ -53,9 +53,9 @@ public class Signup_page extends AppCompatActivity {
         setupCityDropdown();
 
         sBinding.back.setOnClickListener(v -> {
-            Intent intent = new Intent(Signup_page.this, Login_Page.class);
-            startActivity(intent);
+            finish();
         });
+        
         sBinding.login1.setOnClickListener(v -> finish());
 
         sBinding.createaccount.setOnClickListener(v -> {
@@ -69,9 +69,12 @@ public class Signup_page extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, gujaratCities);
         sBinding.etCity.setAdapter(adapter);
-        
-        // Show dropdown on click
         sBinding.etCity.setOnClickListener(v -> sBinding.etCity.showDropDown());
+        
+        sBinding.etCity.setOnItemClickListener((parent, view, position, id) -> {
+            String selection = (String) parent.getItemAtPosition(position);
+            sBinding.etCity.setText(selection, false);
+        });
     }
 
     private void registerUser() {
@@ -93,16 +96,17 @@ public class Signup_page extends AppCompatActivity {
                                 .setValue(user)
                                 .addOnCompleteListener(dbTask -> {
                                     if (dbTask.isSuccessful()) {
-                                        Toast.makeText(Signup_page.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(Signup_page.this, "Account created successfully.", Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(Signup_page.this, TreeActivity.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);
                                         finish();
                                     } else {
-                                        Toast.makeText(Signup_page.this, "Database Error", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(Signup_page.this, "Failed to save user data. Please try again.", Toast.LENGTH_LONG).show();
                                     }
                                 });
                     } else {
-                        Toast.makeText(Signup_page.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(Signup_page.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -116,27 +120,27 @@ public class Signup_page extends AppCompatActivity {
         String confirmPassword = sBinding.etConfirmPassword.getText().toString().trim();
 
         if (username.isEmpty()) {
-            sBinding.etUsername.setError("Username required");
+            sBinding.etUsername.setError("Username is required");
             return false;
         }
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            sBinding.etEmail.setError("Valid email required");
+            sBinding.etEmail.setError("Please enter a valid email address");
             return false;
         }
         if (phone.length() != 10) {
-            sBinding.etPhone.setError("10 digit phone required");
+            sBinding.etPhone.setError("Please enter a valid 10-digit phone number");
             return false;
         }
         if (city.isEmpty()) {
-            sBinding.etCity.setError("City required");
+            sBinding.etCity.setError("Please select a city");
             return false;
         }
         if (password.length() < 6) {
-            sBinding.etPassword.setError("Min 6 characters");
+            sBinding.etPassword.setError("Password must be at least 6 characters");
             return false;
         }
         if (!password.equals(confirmPassword)) {
-            sBinding.etConfirmPassword.setError("Password mismatch");
+            sBinding.etConfirmPassword.setError("Passwords do not match");
             return false;
         }
         return true;

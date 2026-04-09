@@ -8,14 +8,17 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.quickdeal.R;
 import com.example.quickdeal.activities.EditItem;
 import com.example.quickdeal.model.Product;
+import com.example.quickdeal.repository.ProductRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +50,6 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             holder.llEditButton.setVisibility(View.VISIBLE);
         }
 
-        // Edit Intent (Passing isNegotiable for saved state)
         holder.llEditButton.setOnClickListener(v -> {
             Context context = v.getContext();
             Intent intent = new Intent(context, EditItem.class);
@@ -59,11 +61,22 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             intent.putExtra("sellerId", product.sellerId);
             intent.putExtra("timestamp", product.timestamp);
             intent.putExtra("isNegotiable", product.isNegotiable);
+            intent.putExtra("location", product.location);
             intent.putStringArrayListExtra("images", new ArrayList<>(product.images));
             context.startActivity(intent);
         });
 
-        // Click on itemView removed as per user request (Only Home and Wishlist should open detail)
+        holder.llDeleteButton.setOnClickListener(v -> {
+            new AlertDialog.Builder(v.getContext())
+                    .setTitle("Delete Ad")
+                    .setMessage("Are you sure you want to delete this ad?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        ProductRepository.getInstance().deleteProduct(product.getId());
+                        Toast.makeText(v.getContext(), "Product Deleted", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
     }
 
     @Override
@@ -74,7 +87,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAdImage;
         TextView tvAdTitle, tvAdDescription, tvAdLocation, tvAdPrice;
-        LinearLayout llEditButton;
+        LinearLayout llEditButton, llDeleteButton;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -84,12 +97,19 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             tvAdLocation = itemView.findViewById(R.id.tvLocation);
             tvAdPrice = itemView.findViewById(R.id.tvPrice);
             llEditButton = itemView.findViewById(R.id.llEditButton);
+            llDeleteButton = itemView.findViewById(R.id.llDeleteButton);
         }
 
         public void bind(Product product) {
             tvAdTitle.setText(product.name);
             tvAdDescription.setText(product.description);
-            tvAdPrice.setText(product.price);
+            tvAdPrice.setText("₹" + product.price);
+            
+            if (product.location != null && !product.location.isEmpty()) {
+                tvAdLocation.setText(product.location);
+            } else {
+                tvAdLocation.setText("Location N/A");
+            }
 
             if (product.images != null && !product.images.isEmpty()) {
                 Glide.with(itemView.getContext())

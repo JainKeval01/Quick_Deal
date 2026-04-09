@@ -79,13 +79,6 @@
                             android:textStyle="bold"
                             tools:text="Rahul Sharma" />
 
-                        <TextView
-                            android:id="@+id/tvSellerMemberSince"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="#666666"
-                            android:textSize="13sp"
-                            android:text="Member" />
                     </LinearLayout>
 
                     <ImageView
