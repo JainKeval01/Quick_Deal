@@ -262,6 +262,7 @@
                         android:layout_marginBottom="8dp" />
 
                     <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupCondition"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:singleSelection="true"
@@ -274,8 +275,6 @@
                             android:layout_height="wrap_content"
                             android:checked="true"
                             android:text="New"
-                            android:textColor="@color/chip_text_color"
-                            app:chipBackgroundColor="@color/chip_background_color"
                             app:chipStrokeColor="#E0E0E0"
                             app:chipStrokeWidth="1dp" />
 
@@ -285,8 +284,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Used - Like New"
-                            android:textColor="@color/chip_text_color"
-                            app:chipBackgroundColor="@color/chip_background_color"
                             app:chipStrokeColor="#E0E0E0"
                             app:chipStrokeWidth="1dp" />
 
@@ -296,8 +293,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Used - Good"
-                            android:textColor="@color/chip_text_color"
-                            app:chipBackgroundColor="@color/chip_background_color"
                             app:chipStrokeColor="#E0E0E0"
                             app:chipStrokeWidth="1dp" />
 
@@ -356,7 +351,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Pricing & Location Section -->
+            <!-- Pricing Section -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -372,7 +367,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
 
                     <TextView
                         android:layout_width="wrap_content"

@@ -142,10 +142,12 @@
                     android:orientation="horizontal"
                     android:padding="12dp">
 
-                    <ImageView
+                    <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivSellerProfile"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
+                        android:scaleType="centerCrop"
+                        app:shapeAppearanceOverlay="@style/roundedPill"
                         android:src="@drawable/ic_profile" />
 
                     <LinearLayout
@@ -159,16 +161,13 @@
                             android:id="@+id/tvSellerName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Rahul Sharma"
+                            android:text="Seller Name"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
                     </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_arrow_forward" />
+                    <!-- Removed Arrow Icon as requested -->
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

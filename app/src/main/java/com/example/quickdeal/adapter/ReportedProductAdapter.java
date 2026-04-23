@@ -65,7 +65,7 @@ public class ReportedProductAdapter extends RecyclerView.Adapter<ReportedProduct
             tvProductTitle.setText(p.productName); 
             
             String reporter = (p.reporterName != null && !p.reporterName.isEmpty()) ? p.reporterName : "User " + p.reporterId;
-            tvReportedBy.setText("By: " + reporter + " • " + p.timeAgo);
+            tvReportedBy.setText("By: " + reporter);
 
             if (p.isHighPriority) {
                 tvHighPriority.setVisibility(View.VISIBLE);
@@ -75,7 +75,6 @@ public class ReportedProductAdapter extends RecyclerView.Adapter<ReportedProduct
 
             tvStatus.setText(p.status);
             
-            // UI Feedback for Status
             if ("Visited".equalsIgnoreCase(p.status)) {
                 tvStatus.setBackgroundResource(R.drawable.bg_status_green);
                 tvStatus.setTextColor(ContextCompat.getColor(itemView.getContext(), android.R.color.white));

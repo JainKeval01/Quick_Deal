@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -18,6 +19,7 @@ import com.cloudinary.android.callback.UploadCallback;
 import com.example.quickdeal.adapter.SelectedImageAdapter;
 import com.example.quickdeal.databinding.ActivityEditItemBinding;
 import com.example.quickdeal.model.Product;
+import com.google.android.material.chip.Chip;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -29,9 +31,9 @@ import java.util.Map;
 public class EditItem extends AppCompatActivity {
 
     private ActivityEditItemBinding binding;
-    private ArrayList<String> imageUrls = new ArrayList<>(); 
-    private ArrayList<Uri> newImageUris = new ArrayList<>(); 
-    private ArrayList<Uri> allDisplayUris = new ArrayList<>(); 
+    private final ArrayList<String> imageUrls = new ArrayList<>(); 
+    private final ArrayList<Uri> newImageUris = new ArrayList<>(); 
+    private final ArrayList<Uri> allDisplayUris = new ArrayList<>(); 
     
     private SelectedImageAdapter imageAdapter;
     private ProgressDialog progressDialog;
@@ -116,7 +118,6 @@ public class EditItem extends AppCompatActivity {
     }
 
     private void setupCategory() {
-        // Updated category list to be consistent with Home and Add Item screens
         List<String> categories = Arrays.asList("Electronics", "Cars", "Properties", "Mobiles", "Fashion", "Bikes", "Others");
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
         binding.spinnerCategory.setAdapter(adapter);
@@ -128,6 +129,7 @@ public class EditItem extends AppCompatActivity {
         String description = getIntent().getStringExtra("description");
         String price = getIntent().getStringExtra("price");
         String category = getIntent().getStringExtra("category");
+        String condition = getIntent().getStringExtra("status"); 
         sellerId = getIntent().getStringExtra("sellerId");
         location = getIntent().getStringExtra("location");
         timestamp = getIntent().getLongExtra("timestamp", System.currentTimeMillis());
@@ -147,6 +149,12 @@ public class EditItem extends AppCompatActivity {
         binding.etDescription.setText(description);
         binding.switchNegotiable.setChecked(isNegotiable);
         
+        if (condition != null) {
+            if (condition.equalsIgnoreCase("New")) binding.chipNew.setChecked(true);
+            else if (condition.equalsIgnoreCase("Used - Like New")) binding.chipUsedLikeNew.setChecked(true);
+            else if (condition.equalsIgnoreCase("Used - Good")) binding.chipUsedGood.setChecked(true);
+        }
+
         setSpinnerValue(category);
         updatePhotoUI();
     }
@@ -158,7 +166,7 @@ public class EditItem extends AppCompatActivity {
 
     private void setSpinnerValue(String category) {
         if (category == null) return;
-        ArrayAdapter adapter = (ArrayAdapter) binding.spinnerCategory.getAdapter();
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) binding.spinnerCategory.getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
             if (adapter.getItem(i).toString().equalsIgnoreCase(category)) {
                 binding.spinnerCategory.setSelection(i);
@@ -174,6 +182,15 @@ public class EditItem extends AppCompatActivity {
         String category = binding.spinnerCategory.getSelectedItem().toString();
         boolean isNegotiable = binding.switchNegotiable.isChecked();
 
+        String condition = "Used";
+        int checkedChipId = binding.chipGroupCondition.getCheckedChipId();
+        if (checkedChipId != View.NO_ID) {
+            Chip chip = findViewById(checkedChipId);
+            if (chip != null) {
+                condition = chip.getText().toString();
+            }
+        }
+
         if (title.isEmpty() || price.isEmpty() || description.isEmpty() || allDisplayUris.isEmpty()) {
             Toast.makeText(this, "Please provide all required details and at least one image.", Toast.LENGTH_SHORT).show();
             return;
@@ -183,13 +200,13 @@ public class EditItem extends AppCompatActivity {
         progressDialog.show();
 
         if (newImageUris.isEmpty()) {
-            saveToFirebase(title, price, description, category, isNegotiable);
+            saveToFirebase(title, price, description, category, isNegotiable, condition);
         } else {
-            uploadNewImages(title, price, description, category, isNegotiable);
+            uploadNewImages(title, price, description, category, isNegotiable, condition);
         }
     }
 
-    private void uploadNewImages(String title, String price, String description, String category, boolean isNegotiable) {
+    private void uploadNewImages(String title, String price, String description, String category, boolean isNegotiable, String condition) {
         final int totalNew = newImageUris.size();
         final int[] count = {0};
 
@@ -206,13 +223,13 @@ public class EditItem extends AppCompatActivity {
                             count[0]++;
                             imageUrls.add((String) resultData.get("secure_url"));
                             if (count[0] == totalNew) {
-                                saveToFirebase(title, price, description, category, isNegotiable);
+                                saveToFirebase(title, price, description, category, isNegotiable, condition);
                             }
                         }
                         @Override
                         public void onError(String requestId, ErrorInfo error) {
                             count[0]++;
-                            if (count[0] == totalNew) saveToFirebase(title, price, description, category, isNegotiable);
+                            if (count[0] == totalNew) saveToFirebase(title, price, description, category, isNegotiable, condition);
                         }
                         @Override
                         public void onReschedule(String requestId, ErrorInfo error) {}
@@ -220,10 +237,10 @@ public class EditItem extends AppCompatActivity {
         }
     }
 
-    private void saveToFirebase(String title, String price, String description, String category, boolean isNegotiable) {
+    private void saveToFirebase(String title, String price, String description, String category, boolean isNegotiable, String condition) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("products").child(productId);
         
-        Product updatedProduct = new Product(productId, title, price, imageUrls, description, "Available", category, sellerId, timestamp, isNegotiable, location);
+        Product updatedProduct = new Product(productId, title, price, imageUrls, description, condition, category, sellerId, timestamp, isNegotiable, location);
         
         ref.setValue(updatedProduct).addOnCompleteListener(task -> {
             progressDialog.dismiss();

@@ -25,6 +25,7 @@ import com.example.quickdeal.databinding.FragmentAddItemBinding;
 import com.example.quickdeal.model.Product;
 import com.example.quickdeal.model.User;
 import com.example.quickdeal.repository.ProductRepository;
+import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -167,6 +168,16 @@ public class AddItemFragment extends Fragment {
         String description = binding.etDescription.getText().toString().trim();
         boolean isNegotiable = binding.switchNegotiable.isChecked();
 
+        // Get selected condition
+        String condition = "Used";
+        int checkedChipId = binding.chipGroupCondition.getCheckedChipId();
+        if (checkedChipId != View.NO_ID) {
+            Chip chip = binding.getRoot().findViewById(checkedChipId);
+            if (chip != null) {
+                condition = chip.getText().toString();
+            }
+        }
+
         if (title.isEmpty() || selectedCategory.isEmpty() || price.isEmpty() || description.isEmpty() || imageUris.size() < 1) {
             Toast.makeText(getContext(), "Please provide all details and at least one image.", Toast.LENGTH_SHORT).show();
             return;
@@ -174,10 +185,10 @@ public class AddItemFragment extends Fragment {
 
         progressDialog.setMessage("Uploading images...");
         progressDialog.show();
-        uploadImagesToCloudinary(title, price, description, isNegotiable);
+        uploadImagesToCloudinary(title, price, description, isNegotiable, condition);
     }
 
-    private void uploadImagesToCloudinary(String title, String price, String description, boolean isNegotiable) {
+    private void uploadImagesToCloudinary(String title, String price, String description, boolean isNegotiable, String condition) {
         imageUrls.clear();
         final int totalImages = imageUris.size();
         final int[] uploadCount = {0};
@@ -199,7 +210,7 @@ public class AddItemFragment extends Fragment {
                             imageUrls.add(url);
 
                             if (uploadCount[0] == totalImages) {
-                                saveProductToFirebase(title, price, description, isNegotiable);
+                                saveProductToFirebase(title, price, description, isNegotiable, condition);
                             }
                         }
 
@@ -210,7 +221,7 @@ public class AddItemFragment extends Fragment {
                             
                             if (uploadCount[0] == totalImages) {
                                 if (imageUrls.size() > 0) {
-                                    saveProductToFirebase(title, price, description, isNegotiable);
+                                    saveProductToFirebase(title, price, description, isNegotiable, condition);
                                 } else {
                                     progressDialog.dismiss();
                                     Toast.makeText(getContext(), "Failed to upload images. Please try again.", Toast.LENGTH_SHORT).show();
@@ -224,14 +235,15 @@ public class AddItemFragment extends Fragment {
         }
     }
 
-    private void saveProductToFirebase(String title, String price, String description, boolean isNegotiable) {
+    private void saveProductToFirebase(String title, String price, String description, boolean isNegotiable, String condition) {
         progressDialog.setMessage("Finalizing your advertisement...");
         DatabaseReference productsRef = FirebaseDatabase.getInstance().getReference("products");
         String productId = productsRef.push().getKey();
         String userId = mAuth.getUid();
         long timestamp = System.currentTimeMillis();
 
-        Product product = new Product(productId, title, price, imageUrls, description, "Available", selectedCategory, userId, timestamp, isNegotiable, userCity);
+        // Condition is stored in 'status' field
+        Product product = new Product(productId, title, price, imageUrls, description, condition, selectedCategory, userId, timestamp, isNegotiable, userCity);
 
         productRepository.addProduct(product, task -> {
             progressDialog.dismiss();
@@ -251,6 +263,7 @@ public class AddItemFragment extends Fragment {
         binding.spinnerCategory.setText("");
         selectedCategory = "";
         binding.switchNegotiable.setChecked(false);
+        binding.chipNew.setChecked(true);
         imageUris.clear();
         imageUrls.clear();
         updatePhotoUI();

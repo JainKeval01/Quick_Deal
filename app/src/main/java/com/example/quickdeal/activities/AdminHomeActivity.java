@@ -95,7 +95,6 @@ public class AdminHomeActivity extends AppCompatActivity implements ReportedProd
     public void onReportsChanged(List<ReportedProduct> reports) {
         reportedProductsList.clear();
         
-        // FILTER: Only add reports where the product still exists in the repository
         for (ReportedProduct report : reports) {
             if (productRepository.getProductById(report.productId) != null) {
                 reportedProductsList.add(report);

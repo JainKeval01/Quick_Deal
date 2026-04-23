@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.quickdeal.R;
 import com.example.quickdeal.model.Product;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     private List<Product> list;
     private OnFavoriteClickListener favoriteClickListener;
     private OnItemClickListener itemClickListener;
+    private String currentUserId;
     public static final String PAYLOAD_FAVORITE = "PAYLOAD_FAVORITE";
 
     public interface OnFavoriteClickListener {
@@ -34,6 +36,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         this.list = list;
         this.favoriteClickListener = favoriteClickListener;
         this.itemClickListener = itemClickListener;
+        this.currentUserId = FirebaseAuth.getInstance().getUid();
     }
 
     @NonNull
@@ -65,7 +68,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, location, price;
+        TextView name, location, price, tvYourAdTag;
         ImageView image, ivFavorite;
 
         public ViewHolder(@NonNull View itemView) {
@@ -75,13 +78,15 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
             price = itemView.findViewById(R.id.tvPrice);
             image = itemView.findViewById(R.id.ivProductImage);
             ivFavorite = itemView.findViewById(R.id.ivFavorite);
+            
+            // Add a simple "Your Ad" tag if it exists in layout or handle via visibility
+            tvYourAdTag = new TextView(itemView.getContext()); // Fallback or find by ID
         }
 
         public void bind(Product p) {
             name.setText(p.name);
             price.setText("₹" + p.price);
             
-            // Dynamic Location Fix
             if (p.location != null && !p.location.isEmpty()) {
                 location.setText(p.location);
             } else {
@@ -96,7 +101,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
                         .into(image);
             }
 
-            updateFavoriteIcon(p);
+            // Check if product belongs to current user
+            if (currentUserId != null && currentUserId.equals(p.sellerId)) {
+                ivFavorite.setVisibility(View.GONE); // User can't favorite their own ad
+                // You could show a "Your Ad" badge here if you add it to the layout
+            } else {
+                ivFavorite.setVisibility(View.VISIBLE);
+                updateFavoriteIcon(p);
+            }
 
             ivFavorite.setOnClickListener(v -> {
                 if (favoriteClickListener != null) {

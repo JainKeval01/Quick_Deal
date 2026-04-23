@@ -8,10 +8,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.quickdeal.R;
 import com.example.quickdeal.adapter.ProductAdapter;
 import com.example.quickdeal.databinding.FragmentFavBinding;
 import com.example.quickdeal.model.Product;
@@ -21,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteClickListener, ProductAdapter.OnItemClickListener {
+public class FavFragment extends Fragment implements ProductRepository.OnDataChangedListener, ProductAdapter.OnFavoriteClickListener, ProductAdapter.OnItemClickListener {
 
     private FragmentFavBinding binding;
     private ProductRepository productRepository;
@@ -29,7 +27,6 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     private final List<Product> favoriteProductsList = new ArrayList<>();
 
     public FavFragment() {
-        // Required empty public constructor
     }
 
     @Nullable
@@ -44,6 +41,8 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupRecyclerView();
+        // Set listener AFTER adapter is initialized
+        productRepository.setProductListener(this); 
     }
     
     @Override
@@ -59,6 +58,8 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     }
 
     private void loadFavoriteProducts() {
+        if (adapter == null) return;
+        
         List<Product> freshFavorites = productRepository.getFavoriteProducts();
         favoriteProductsList.clear();
         favoriteProductsList.addAll(freshFavorites);
@@ -67,6 +68,8 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     }
 
     private void updateUI() {
+        if (binding == null) return;
+        
         if (favoriteProductsList.isEmpty()) {
             binding.llEmptyState.setVisibility(View.VISIBLE);
             binding.rvFav.setVisibility(View.GONE);
@@ -79,14 +82,31 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     }
 
     @Override
-    public void onFavoriteClick(int position, Product product) {
-        product.isFavorite = !product.isFavorite;
-        productRepository.toggleFavoriteStatus(product);
+    public void onDataChanged(List<Product> products) {
+        // Sirf tabhi load karein jab fragment visible ho aur hum kisi action ka wait na kar rahe hon
+        if (isAdded()) {
+            loadFavoriteProducts();
+        }
+    }
 
+    @Override
+    public void onError(String error) {
+    }
+
+    @Override
+    public void onFavoriteClick(int position, Product product) {
+        if (adapter == null || position < 0 || position >= favoriteProductsList.size()) return;
+
+        // 1. Pehle local list se hatao (Turant response ke liye)
         favoriteProductsList.remove(position);
         adapter.notifyItemRemoved(position);
+        // Position shift handle karne ke liye
         adapter.notifyItemRangeChanged(position, favoriteProductsList.size());
         
+        // 2. Phir Firebase/Repo mein update karo
+        productRepository.toggleFavoriteStatus(product);
+        
+        // 3. UI update (Empty state check)
         updateUI();
     }
 
@@ -94,5 +114,15 @@ public class FavFragment extends Fragment implements ProductAdapter.OnFavoriteCl
     public void onItemClick(Product product) {
         ProductDetailFragment bottomSheet = ProductDetailFragment.newInstance(product);
         bottomSheet.show(getChildFragmentManager(), "ProductDetail");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (productRepository != null) {
+            productRepository.setProductListener(null);
+        }
+        binding = null;
+        adapter = null;
     }
 }

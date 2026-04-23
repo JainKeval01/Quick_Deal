@@ -58,6 +58,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             intent.putExtra("description", product.description);
             intent.putExtra("price", product.price);
             intent.putExtra("category", product.category);
+            intent.putExtra("status", product.status);
             intent.putExtra("sellerId", product.sellerId);
             intent.putExtra("timestamp", product.timestamp);
             intent.putExtra("isNegotiable", product.isNegotiable);
@@ -71,8 +72,15 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                     .setTitle("Delete Ad")
                     .setMessage("Are you sure you want to delete this ad?")
                     .setPositiveButton("Delete", (dialog, which) -> {
-                        ProductRepository.getInstance().deleteProduct(product.getId());
-                        Toast.makeText(v.getContext(), "Product Deleted", Toast.LENGTH_SHORT).show();
+                        int currentPos = holder.getAdapterPosition();
+                        if (currentPos != RecyclerView.NO_POSITION) {
+                            String productId = products.get(currentPos).getId();
+                            products.remove(currentPos);
+                            notifyItemRemoved(currentPos);
+                            notifyItemRangeChanged(currentPos, products.size());
+                            ProductRepository.getInstance().deleteProduct(productId);
+                            Toast.makeText(v.getContext(), "Product Deleted", Toast.LENGTH_SHORT).show();
+                        }
                     })
                     .setNegativeButton("Cancel", null)
                     .show();

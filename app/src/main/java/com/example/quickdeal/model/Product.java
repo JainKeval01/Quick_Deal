@@ -11,7 +11,7 @@ public class Product implements Parcelable {
     public List<String> images;
     public boolean isFavorite = false;
     public String description;
-    public String status; // e.g., "Available", "Sold"
+    public String status; // Used for condition (New, Old, etc.)
     public String category;
     public String sellerId;
     public long timestamp;

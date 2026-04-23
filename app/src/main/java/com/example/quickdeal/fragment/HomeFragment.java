@@ -35,12 +35,14 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
                              Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         
-        productRepository = ProductRepository.getInstance();
-        productRepository.setProductListener(this);
-
+        // 1. Initialize UI components first
         setupRecyclerView();
         setupCategoryListeners();
         setupSearch();
+
+        // 2. Then get repository and set listener safely
+        productRepository = ProductRepository.getInstance();
+        productRepository.setProductListener(this);
 
         return binding.getRoot();
     }
@@ -67,7 +69,7 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
     }
 
     private void updateUIWithProducts(List<Product> products) {
-        if (binding == null) return;
+        if (binding == null || adapter == null) return;
         
         productList.clear();
         productList.addAll(products);
@@ -92,6 +94,7 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
     }
 
     private void filterByCategory(String category) {
+        if (binding == null) return;
         binding.progressBar.setVisibility(View.VISIBLE);
         List<Product> filteredList = new ArrayList<>();
         for (Product p : fullProductList) {
@@ -118,11 +121,14 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
     }
 
     private void filterSearch(String query) {
+        String lowerQuery = query.toLowerCase();
         List<Product> filteredList = new ArrayList<>();
         for (Product product : fullProductList) {
-            if (product.name.toLowerCase().contains(query.toLowerCase()) || 
-                product.description.toLowerCase().contains(query.toLowerCase()) ||
-                (product.category != null && product.category.toLowerCase().contains(query.toLowerCase()))) {
+            boolean matchesName = product.name != null && product.name.toLowerCase().contains(lowerQuery);
+            boolean matchesDesc = product.description != null && product.description.toLowerCase().contains(lowerQuery);
+            boolean matchesCat = product.category != null && product.category.toLowerCase().contains(lowerQuery);
+            
+            if (matchesName || matchesDesc || matchesCat) {
                 filteredList.add(product);
             }
         }
@@ -131,6 +137,7 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
 
     @Override
     public void onFavoriteClick(int position, Product product) {
+        if (adapter == null || productRepository == null) return;
         product.isFavorite = !product.isFavorite;
         productRepository.toggleFavoriteStatus(product);
         adapter.notifyItemChanged(position, ProductAdapter.PAYLOAD_FAVORITE);
@@ -145,7 +152,10 @@ public class HomeFragment extends Fragment implements ProductRepository.OnDataCh
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        productRepository.setProductListener(null);
+        if (productRepository != null) {
+            productRepository.setProductListener(null);
+        }
         binding = null;
+        adapter = null;
     }
 }

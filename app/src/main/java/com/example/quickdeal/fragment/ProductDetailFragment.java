@@ -2,6 +2,7 @@ package com.example.quickdeal.fragment;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
+import com.bumptech.glide.Glide;
 import com.example.quickdeal.R;
 import com.example.quickdeal.adapter.ProductImageAdapter;
 import com.example.quickdeal.databinding.FragmentProductDetailBinding;
@@ -101,11 +103,11 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             updateWishlistButton();
             loadSellerInfo();
 
-            // Restriction: User cannot report, chat or call themselves
             if (product.sellerId != null && product.sellerId.equals(currentUserId)) {
                 binding.report.setVisibility(View.GONE);
                 binding.btnChat.setVisibility(View.GONE);
                 binding.icCall.setVisibility(View.GONE);
+                binding.btnWishlist.setVisibility(View.GONE);
             }
         }
 
@@ -140,8 +142,7 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
 
     private void openWhatsApp() {
         String message = "Hi, I'm interested in your product: " + product.name +
-                "\nPrice: ₹" + product.price +
-                "\nCheck it out: " + (product.images != null && !product.images.isEmpty() ? product.images.get(0) : "");
+                "\nPrice: ₹" + product.price;
 
         String url = "https://api.whatsapp.com/send?phone=" + sellerPhone + "&text=" + Uri.encode(message);
         try {
@@ -165,8 +166,14 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
                         if (user != null && binding != null) {
                             binding.tvSellerName.setText(user.username);
                             sellerPhone = user.phone;
-                            if (user.city != null) {
-                                binding.tvLocation.setText(user.city);
+                            
+                            // Corrected variable name to profileImageUrl as per User model
+                            if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
+                                Glide.with(requireContext())
+                                        .load(user.profileImageUrl)
+                                        .placeholder(R.drawable.ic_profile)
+                                        .error(R.drawable.ic_profile)
+                                        .into(binding.ivSellerProfile);
                             }
                         }
                     }
@@ -242,18 +249,26 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
         binding.tvPrice.setText("₹" + product.price);
         binding.tvTitle.setText(product.name);
         binding.tvDescription.setText(product.description);
-        binding.tvStatus.setText(product.status);
+        
+        if (product.status != null) {
+            binding.tvStatus.setText(product.status.toUpperCase());
+            
+            if (product.status.equalsIgnoreCase("New")) {
+                binding.tvStatus.setBackgroundResource(R.drawable.bg_status_green);
+                binding.tvStatus.setTextColor(Color.WHITE);
+            } else if (product.status.equalsIgnoreCase("Used - Like New")) {
+                binding.tvStatus.setBackgroundResource(R.drawable.bg_status_yellow);
+                binding.tvStatus.setTextColor(Color.BLACK); 
+            } else {
+                binding.tvStatus.setBackgroundResource(R.drawable.bg_status_red);
+                binding.tvStatus.setTextColor(Color.WHITE);
+            }
+        }
 
         if (product.isNegotiable) {
             binding.tvNegotiable.setText("Price is Negotiable");
         } else {
             binding.tvNegotiable.setText("Fixed Price");
-        }
-
-        if ("Available".equalsIgnoreCase(product.status)) {
-            binding.tvStatus.setBackgroundResource(R.drawable.bg_status_green);
-        } else {
-            binding.tvStatus.setBackgroundResource(R.drawable.bg_status_red);
         }
 
         if (product.location != null && !product.location.isEmpty()) {
@@ -269,5 +284,11 @@ public class ProductDetailFragment extends BottomSheetDialogFragment {
             binding.btnWishlist.setIconResource(R.drawable.ic_wishlist_add);
             binding.btnWishlist.setText("Wishlist");
         }
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

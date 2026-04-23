@@ -38,6 +38,22 @@
                 android:padding="8dp"
                 android:contentDescription="@string/add_to_favorites" />
 
+            <!-- Your Ad Badge -->
+            <TextView
+                android:id="@+id/tvYourAdTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_status_green"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="YOUR AD"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
         </FrameLayout>
 
         <!-- Product Details -->

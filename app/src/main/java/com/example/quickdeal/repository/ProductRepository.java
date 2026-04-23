@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.example.quickdeal.model.Product;
 import com.example.quickdeal.model.ReportedProduct;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -12,21 +13,27 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ProductRepository {
 
     private static ProductRepository instance;
     private final DatabaseReference mDatabase;
     private final DatabaseReference mReportsDatabase;
+    private final DatabaseReference mFavoritesDatabase;
+    
     private final List<Product> allProducts = new ArrayList<>();
-    private final List<Product> favoriteProducts = new ArrayList<>();
+    private final Set<String> favoriteProductIds = new HashSet<>();
     private final List<ReportedProduct> reportedProducts = new ArrayList<>();
+    
     private OnDataChangedListener productListener;
     private OnReportsChangedListener reportsListener;
     
     private ValueEventListener productValueListener;
     private ValueEventListener reportsValueListener;
+    private ValueEventListener favoritesValueListener;
 
     public interface OnDataChangedListener {
         void onDataChanged(List<Product> products);
@@ -41,6 +48,7 @@ public class ProductRepository {
     private ProductRepository() {
         mDatabase = FirebaseDatabase.getInstance().getReference("products");
         mReportsDatabase = FirebaseDatabase.getInstance().getReference("reports");
+        mFavoritesDatabase = FirebaseDatabase.getInstance().getReference("Favorites");
         startListening();
     }
 
@@ -69,9 +77,7 @@ public class ProductRepository {
                         allProducts.add(product);
                     }
                 }
-                if (productListener != null) {
-                    productListener.onDataChanged(new ArrayList<>(allProducts));
-                }
+                notifyProductListeners();
             }
 
             @Override
@@ -102,33 +108,60 @@ public class ProductRepository {
             }
         };
         mReportsDatabase.addValueEventListener(reportsValueListener);
+
+        String currentUid = FirebaseAuth.getInstance().getUid();
+        if (currentUid != null) {
+            favoritesValueListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    favoriteProductIds.clear();
+                    for (DataSnapshot favSnapshot : snapshot.getChildren()) {
+                        favoriteProductIds.add(favSnapshot.getKey());
+                    }
+                    notifyProductListeners();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            };
+            mFavoritesDatabase.child(currentUid).addValueEventListener(favoritesValueListener);
+        }
+    }
+
+    private void updateProductFavoriteFlags() {
+        for (Product p : allProducts) {
+            p.isFavorite = favoriteProductIds.contains(p.getId());
+        }
+    }
+
+    private void notifyProductListeners() {
+        updateProductFavoriteFlags();
+        if (productListener != null) {
+            productListener.onDataChanged(new ArrayList<>(allProducts));
+        }
     }
 
     public void stopListening() {
-        if (productValueListener != null) {
-            mDatabase.removeEventListener(productValueListener);
-        }
-        if (reportsValueListener != null) {
-            mReportsDatabase.removeEventListener(reportsValueListener);
+        if (productValueListener != null) mDatabase.removeEventListener(productValueListener);
+        if (reportsValueListener != null) mReportsDatabase.removeEventListener(reportsValueListener);
+        String currentUid = FirebaseAuth.getInstance().getUid();
+        if (favoritesValueListener != null && currentUid != null) {
+            mFavoritesDatabase.child(currentUid).removeEventListener(favoritesValueListener);
         }
     }
 
     public void setProductListener(OnDataChangedListener listener) {
         this.productListener = listener;
-        if (listener != null && !allProducts.isEmpty()) {
-            listener.onDataChanged(new ArrayList<>(allProducts));
+        if (listener != null) {
+            notifyProductListeners();
         }
     }
 
     public void setReportsListener(OnReportsChangedListener listener) {
         this.reportsListener = listener;
-        if (listener != null && !reportedProducts.isEmpty()) {
+        if (listener != null) {
             listener.onReportsChanged(new ArrayList<>(reportedProducts));
         }
-    }
-
-    public List<Product> getAllProducts() {
-        return new ArrayList<>(allProducts);
     }
 
     public List<ReportedProduct> getReportedProducts() {
@@ -136,7 +169,26 @@ public class ProductRepository {
     }
 
     public List<Product> getFavoriteProducts() {
-        return new ArrayList<>(favoriteProducts);
+        List<Product> favs = new ArrayList<>();
+        for (Product p : allProducts) {
+            if (favoriteProductIds.contains(p.getId())) {
+                favs.add(p);
+            }
+        }
+        return favs;
+    }
+
+    public void toggleFavoriteStatus(Product product) {
+        String currentUid = FirebaseAuth.getInstance().getUid();
+        if (currentUid == null) return;
+
+        DatabaseReference userFavRef = mFavoritesDatabase.child(currentUid).child(product.getId());
+
+        if (favoriteProductIds.contains(product.getId())) {
+            userFavRef.removeValue();
+        } else {
+            userFavRef.setValue(true);
+        }
     }
 
     public void addProduct(Product product, OnCompleteListener<Void> completionListener) {
@@ -161,16 +213,6 @@ public class ProductRepository {
         }
     }
 
-    public void toggleFavoriteStatus(Product product) {
-        if (product.isFavorite) {
-            if (!favoriteProducts.contains(product)) {
-                favoriteProducts.add(product);
-            }
-        } else {
-            favoriteProducts.remove(product);
-        }
-    }
-
     public Product getProductById(String id) {
         for (Product p : allProducts) {
             if (p.getId() != null && p.getId().equals(id)) {
@@ -180,29 +222,6 @@ public class ProductRepository {
         return null;
     }
 
-    public List<Product> getProductsByCategory(String category) {
-        if (category == null || category.equalsIgnoreCase("All") || category.isEmpty()) {
-            return getAllProducts();
-        }
-        List<Product> filtered = new ArrayList<>();
-        for (Product p : allProducts) {
-            if (p.category != null && p.category.equalsIgnoreCase(category)) {
-                filtered.add(p);
-            }
-        }
-        return filtered;
-    }
-
-    public List<Product> getProductsByUser(String userId) {
-        List<Product> userProducts = new ArrayList<>();
-        for (Product p : allProducts) {
-            if (p.sellerId != null && p.sellerId.equals(userId)) {
-                userProducts.add(p);
-            }
-        }
-        return userProducts;
-    }
-    
     public void deleteProduct(String productId) {
         mDatabase.child(productId).removeValue();
         mReportsDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -215,7 +234,6 @@ public class ProductRepository {
                     }
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
